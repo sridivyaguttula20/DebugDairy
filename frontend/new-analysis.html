@@ -451,34 +451,29 @@
     });
 
     // Handle Analyze Code button
-    analysisForm.addEventListener("submit", function (event) {
-        event.preventDefault();
+   analysisForm.addEventListener("submit", function (event) {
+    event.preventDefault();
 
-        analysisMessage.style.display = "block";
+    if (!editor) {
+        alert("Code editor is still loading. Please wait.");
+        return;
+    }
 
-        if (!editor) {
-            analysisMessage.textContent =
-                "Editor is loading. Please wait and try again.";
-            return;
-        }
+    const code = editor.getValue().trim();
+    const language = document.getElementById("language").value;
 
-        const code = editor.getValue().trim();
-        const language = languageSelect.value;
+    if (!code) {
+        alert("Please enter your code before analyzing.");
+        return;
+    }
 
-        if (!code) {
-            analysisMessage.textContent =
-                "Please enter your code before analyzing.";
-            return;
-        }
+    // Temporary frontend navigation.
+    // Actual AI analysis requires backend integration.
+    sessionStorage.setItem("debugDairyCode", code);
+    sessionStorage.setItem("debugDairyLanguage", language);
 
-        console.log("Programming language:", language);
-        console.log("Submitted code:", code);
-
-        analysisMessage.textContent =
-            "Code collected successfully! AI analysis will be available after connecting the Spring Boot backend.";
-
-        // Backend API integration comes next.
-    });
+    window.location.href = "analysis-result.html";
+});
 </script>
 </body>
 </html>
