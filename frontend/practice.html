@@ -125,6 +125,120 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
 .sidebar a:visited {
     text-decoration: none !important;
 }
+
+/* Weak Areas - Improved Layout */
+
+.weak-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.weak-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f8faff;
+    border: 1px solid #e1e8f5;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.weak-item:hover {
+    background: #f0f5ff;
+}
+
+.topic-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+}
+
+.topic-name {
+    color: #193153;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.weak-item .subtext {
+    font-size: 12px;
+    color: #77859d;
+}
+
+.weak-item .status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.weak-item .status-red {
+    color: #c62845;
+    background: #ffe8ed;
+}
+
+.weak-item .status-yellow {
+    color: #a76500;
+    background: #fff2d8;
+}
+
+.weak-item .status-green {
+    color: #16805d;
+    background: #ddf7eb;
+}
+
+@media (max-width: 600px) {
+    .weak-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Dynamic Badge States */
+.mini-badge {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.mini-badge .medal {
+    transition: filter 0.25s ease, background 0.25s ease;
+}
+
+/* Locked badge */
+.mini-badge:not(.badge-earned) {
+    opacity: 0.45;
+}
+
+.mini-badge:not(.badge-earned) .medal {
+    filter: grayscale(1);
+    background: #e8edf4;
+}
+
+/* Earned badge */
+.mini-badge.badge-earned {
+    opacity: 1;
+}
+
+.mini-badge.badge-earned .medal {
+    filter: none;
+}
+
+.mini-badge.badge-earned strong {
+    color: #193153;
+}
+
 </style>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -165,69 +279,16 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
 
     <section class="top-grid">
 
-        <!-- WEAK AREAS -->
-        <div class="panel">
-            <h2>Your Weak Areas</h2>
-            <p class="subtext">Focus on the topics that need attention.</p>
+        
+<!-- WEAK AREAS -->
+<div class="panel">
+    <h2>Your Weak Areas</h2>
+    <p class="subtext">Focus on the topics that need attention.</p>
+    <div class="weak-list" id="weakAreasList">
+        <p class="subtext">Loading your weak areas...</p>
+    </div>
+</div>
 
-            <div class="weak-list">
-
-                <div class="weak-item">
-                    <div class="topic-icon red">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="5" width="18" height="14" rx="2"/>
-                            <path d="M9 5v14M15 5v14M3 12h18"/>
-                        </svg>
-                    </div>
-                    <span class="weak-name">Array Logic</span>
-                    <span class="status status-red">Needs Practice</span>
-                </div>
-
-                <div class="weak-item">
-                    <div class="topic-icon red">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 4h14v16H5zM9 8h6M9 12h6M9 16h3"/>
-                        </svg>
-                    </div>
-                    <span class="weak-name">Input Handling</span>
-                    <span class="status status-red">Needs Practice</span>
-                </div>
-
-                <div class="weak-item">
-                    <div class="topic-icon yellow">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 7h16M4 12h11M4 17h14"/>
-                        </svg>
-                    </div>
-                    <span class="weak-name">Strings</span>
-                    <span class="status status-yellow">Improving</span>
-                </div>
-
-                <div class="weak-item">
-                    <div class="topic-icon yellow">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M8 5H5v14h3M16 5h3v14h-3M14 4l-4 16"/>
-                        </svg>
-                    </div>
-                    <span class="weak-name">Loops</span>
-                    <span class="status status-yellow">Improving</span>
-                </div>
-
-                <div class="weak-item">
-                    <div class="topic-icon green">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="8" y="3" width="8" height="5" rx="1"/>
-                            <rect x="2" y="16" width="8" height="5" rx="1"/>
-                            <rect x="14" y="16" width="8" height="5" rx="1"/>
-                            <path d="M12 8v4M6 16v-4h12v4"/>
-                        </svg>
-                    </div>
-                    <span class="weak-name">OOP</span>
-                    <span class="status status-green">Strong</span>
-                </div>
-
-            </div>
-        </div>
 
         <!-- STREAK AND BADGES -->
         <div class="right-stack">
@@ -242,7 +303,7 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
                         </svg>
                     </div>
                 </div>
-                <div class="streak-number">5 <span>Days</span></div>
+                <div class="streak-number" id="learningStreak">0 <span>Days</span></div>
                 <p class="streak-caption">Keep it up! Build your coding habit.</p>
             </div>
 
@@ -250,7 +311,7 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
                 <h2>Badges</h2>
                 <div class="badge-mini-grid">
 
-                    <div class="mini-badge">
+                    <div class="mini-badge" id="badgeFirstFix">
                         <div class="medal gold">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <circle cx="12" cy="9" r="6"/>
@@ -260,7 +321,7 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
                         <strong>First Fix</strong>
                     </div>
 
-                    <div class="mini-badge">
+                    <div class="mini-badge" id="badgeDebugDetective">
                         <div class="medal blue">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path d="M12 3 20 6v6c0 5-4 8-8 10-4-2-8-5-8-10V6l8-3Z"/>
@@ -271,7 +332,7 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
                         <strong>Debug<br>Detective</strong>
                     </div>
 
-                    <div class="mini-badge">
+                    <div class="mini-badge" id="badgeConceptMaster">
                         <div class="medal violet">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/>
@@ -286,17 +347,19 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
         </div>
     </section>
 
-    <!-- MISTAKES REDUCED -->
-    <section class="panel section progress-panel">
-        <div>
-            <h2>Mistakes Reduced</h2>
-            <p>Sample improvement indicator from your learning journey.</p>
-            <div class="reduced-number">−30%</div>
-        </div>
-        <div class="bars" aria-label="Illustrative improvement chart">
-            <span></span><span></span><span></span><span></span><span></span>
-        </div>
-    </section>
+   
+<!-- LEARNING PROGRESS -->
+<section class="panel section progress-panel">
+    <div>
+        <h2>Learning Progress</h2>
+        <p>Total code analyses completed.</p>
+        <div class="reduced-number" id="totalPracticeAnalyses">—</div>
+    </div>
+    <div class="bars" aria-label="Learning progress decoration">
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+</section>
+
 
     <!-- RECOMMENDED CODING QUESTIONS -->
     <section class="section">
@@ -345,9 +408,14 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
 
         <div class="question-list" id="questionList">
 
-            <article class="question-card"
-                data-title="two sum find target array"
-                data-language="Java" data-difficulty="Easy" data-platform="LeetCode">
+           
+<article class="question-card"
+    data-title="two sum find target array"
+    data-topic="arrays"
+    data-language="Java"
+    data-difficulty="Easy"
+    data-platform="LeetCode">
+
                 <div class="q-number">1</div>
                 <div class="q-info">
                     <h3>Two Sum</h3>
@@ -551,6 +619,209 @@ const difficultyFilter = document.getElementById("difficultyFilter");
 const platformFilter = document.getElementById("platformFilter");
 const cards = [...document.querySelectorAll(".question-card")];
 const noResults = document.getElementById("noResults");
+
+async function updateLearningStreak() {
+    const streakElement = document.getElementById("learningStreak");
+
+    try {
+        const response = await fetch("http://localhost:8081/api/analysis");
+
+        if (!response.ok) {
+            throw new Error("Failed to load learning history");
+        }
+
+        const records = await response.json();
+
+        // Get unique local dates on which analyses were saved.
+        const activityDates = new Set(
+            records
+                .map(record => record.created_at || record.createdAt)
+                .filter(Boolean)
+                .map(value => {
+                    const date = new Date(value);
+                    return Number.isNaN(date.getTime())
+                        ? null
+                        : `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+                })
+                .filter(Boolean)
+        );
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // A streak remains active if the user analysed code today or yesterday.
+        const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+        const yesterdayKey = `${yesterday.getFullYear()}-${yesterday.getMonth()}-${yesterday.getDate()}`;
+
+        if (!activityDates.has(todayKey) && !activityDates.has(yesterdayKey)) {
+            streakElement.innerHTML = '0 <span>Days</span>';
+            return;
+        }
+
+        let streak = 0;
+        const currentDate = new Date(today);
+
+        if (!activityDates.has(todayKey)) {
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+
+        while (true) {
+            const key = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
+
+            if (!activityDates.has(key)) break;
+
+            streak++;
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+
+        streakElement.innerHTML = `${streak} <span>Days</span>`;
+    } catch (error) {
+        console.error("Could not update learning streak:", error);
+        streakElement.innerHTML = '— <span>Days</span>';
+    }
+}
+
+updateLearningStreak();
+
+async function updateWeakAreas() {
+    const weakAreasList = document.getElementById("weakAreasList");
+
+    try {
+        const response = await fetch("http://localhost:8081/api/analysis");
+
+        if (!response.ok) {
+            throw new Error("Failed to load analysis records");
+        }
+
+        const records = await response.json();
+
+        if (!records.length) {
+            weakAreasList.innerHTML =
+                '<p class="subtext">No analysis records yet. Analyse some code to discover your weak areas.</p>';
+            return;
+        }
+
+        const topicCounts = {};
+
+        records.forEach(record => {
+            const topic =
+                record.concept_to_revise ||
+                record.conceptToRevise ||
+                record.category ||
+                record.issue_title ||
+                record.issueTitle;
+
+            if (!topic || !String(topic).trim()) return;
+
+            const name = String(topic).trim();
+            topicCounts[name] = (topicCounts[name] || 0) + 1;
+        });
+
+        const topics = Object.entries(topicCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        if (!topics.length) {
+            weakAreasList.innerHTML =
+                '<p class="subtext">No topic information found in your saved analyses yet.</p>';
+            return;
+        }
+
+        weakAreasList.innerHTML = topics.map(([topic, count]) => {
+            const status = count >= 3
+                ? { label: "Needs Practice", className: "status-red" }
+                : count >= 2
+                    ? { label: "Improving", className: "status-yellow" }
+                    : { label: "Review", className: "status-green" };
+
+            return `
+                <div class="weak-item">
+                    <div class="topic-info">
+                        <span class="topic-name">${topic.replace(/[&<>"']/g, char => ({
+                            "&": "&amp;",
+                            "<": "&lt;",
+                            ">": "&gt;",
+                            '"': "&quot;",
+                            "'": "&#39;"
+                        })[char])}</span>
+                        <span class="subtext">${count} recorded ${count === 1 ? "occurrence" : "occurrences"}</span>
+                    </div>
+                    <span class="status ${status.className}">${status.label}</span>
+                </div>
+            `;
+        }).join("");
+
+    } catch (error) {
+        console.error("Could not update weak areas:", error);
+        weakAreasList.innerHTML =
+            '<p class="subtext">Could not load weak areas. Check that the backend is running.</p>';
+    }
+}
+
+updateWeakAreas();
+
+async function updateTotalPracticeAnalyses() {
+    const totalElement = document.getElementById("totalPracticeAnalyses");
+
+    try {
+        const response = await fetch("http://localhost:8081/api/analysis");
+
+        if (!response.ok) {
+            throw new Error("Failed to load analyses");
+        }
+
+        const records = await response.json();
+        totalElement.textContent = records.length;
+
+    } catch (error) {
+        console.error("Could not load total analyses:", error);
+        totalElement.textContent = "—";
+    }
+}
+
+updateTotalPracticeAnalyses();
+
+async function updateBadges() {
+    const firstFix = document.getElementById("badgeFirstFix");
+    const debugDetective = document.getElementById("badgeDebugDetective");
+    const conceptMaster = document.getElementById("badgeConceptMaster");
+
+    try {
+        const response = await fetch("http://localhost:8081/api/analysis");
+
+        if (!response.ok) {
+            throw new Error("Failed to load analysis records");
+        }
+
+        const records = await response.json();
+
+        const hasConcept = record =>
+            Boolean(
+                (record.concept_to_revise || record.conceptToRevise || "")
+                    .toString().trim()
+            );
+
+       firstFix.classList.toggle("badge-earned", records.length >= 1);
+
+debugDetective.classList.toggle(
+    "badge-earned",
+    records.length >= 25
+);
+
+conceptMaster.classList.toggle(
+    "badge-earned",
+    records.filter(hasConcept).length >= 50
+);
+
+    } catch (error) {
+        console.error("Could not update badges:", error);
+    }
+}
+
+updateBadges();
 
 function filterQuestions() {
     const search = searchInput.value.trim().toLowerCase();

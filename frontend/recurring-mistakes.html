@@ -573,6 +573,109 @@
                 gap: 10px;
             }
         }
+
+/* Recurring mistakes: styling for dynamically generated cards */
+.mistake-item {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 16px;
+    margin-bottom: 12px;
+    min-height: 84px;
+    background: #ffffff;
+    border: 1px solid #dfe7f5;
+    border-radius: 13px;
+    box-sizing: border-box;
+}
+
+.mistake-item:hover {
+    border-color: #c9baff;
+    box-shadow: 0 5px 16px rgba(48, 43, 100, 0.06);
+}
+
+.mistake-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #fff0f2;
+    color: #e34b65;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.mistake-info {
+    min-width: 0;
+}
+
+.mistake-info h3 {
+    margin: 0 0 9px;
+    color: #172d4c;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.mistake-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 8px;
+    color: #7485a2;
+    font-size: 11px;
+}
+
+.mistake-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 5px;
+    background: #f0edff;
+    color: #6650d9;
+    font-size: 10px;
+}
+
+.mistake-info p {
+    margin: 0;
+    color: #70819d;
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.mistake-count {
+    min-width: 105px;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mistake-count strong {
+    color: #172d4c;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.mistake-count span {
+    color: #8290a8;
+    font-size: 11px;
+}
+
+@media (max-width: 700px) {
+    .mistake-item {
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .mistake-count {
+        grid-column: 2;
+        min-width: 0;
+        text-align: left;
+    }
+}
     </style>
 </head>
 
@@ -641,79 +744,65 @@
             </a>
         </header>
 
-        <!-- SUMMARY CARDS -->
-        <section class="summary-grid">
+        
+<!-- SUMMARY CARDS -->
+<section class="summary-grid">
 
-            <article class="summary-card">
-                <div class="summary-icon">!</div>
-                <div class="summary-info">
-                    <span>Repeated Mistakes</span>
-                    <strong id="totalRepeats">10</strong>
-                    <small>Across your sample records</small>
-                </div>
-            </article>
+    <article class="summary-card">
+        <div class="summary-icon">!</div>
+        <div class="summary-info">
+            <span>Repeated Mistakes</span>
+            <strong id="totalRepeats">0</strong>
+            <small>Actual mistake records</small>
+        </div>
+    </article>
 
-            <article class="summary-card">
-                <div class="summary-icon">↻</div>
-                <div class="summary-info">
-                    <span>Recurring Patterns</span>
-                    <strong id="patternCount">4</strong>
-                    <small>Different mistake types</small>
-                </div>
-            </article>
+    <article class="summary-card">
+        <div class="summary-icon">↻</div>
+        <div class="summary-info">
+            <span>Recurring Patterns</span>
+            <strong id="patternCount">0</strong>
+            <small>Distinct mistake types found more than once</small>
+        </div>
+    </article>
+    <article class="summary-card">
+        <div class="summary-icon">✓</div>
+        <div class="summary-info">
+            <span>Top Priority</span>
+            <strong id="topPriority" style="font-size:19px;">None yet</strong>
+            <small>Most frequently repeated mistake</small>
+        </div>
+    </article>
+</section>
+        
+<!-- RECURRING PATTERN ALERT -->
+<section class="pattern-card" id="patternAlert">
 
-            <article class="summary-card">
-                <div class="summary-icon">✓</div>
-                <div class="summary-info">
-                    <span>Top Priority</span>
-                    <strong style="font-size:19px;">Array Boundaries</strong>
-                    <small>Recommended concept to revise</small>
-                </div>
-            </article>
+    <div class="pattern-heading">
+        <div class="warning-icon">!</div>
 
-        </section>
+        <div class="pattern-content">
+            <h2 id="alertTitle">Loading recurring patterns...</h2>
 
-        <!-- RECURRING PATTERN ALERT -->
-        <section class="pattern-card">
+            <p id="alertDescription">
+                Checking your saved analyses for repeated mistakes.
+            </p>
 
-            <div class="pattern-heading">
+            <div class="recommendation-label">Recommended Revision</div>
 
-                <div class="warning-icon">!</div>
-
-                <div class="pattern-content">
-
-                    <h2>Recurring Pattern Detected</h2>
-
-                    <p>
-                        You have made <strong>4 array boundary mistakes</strong>
-                        in this demo's last-30-day summary.
-                        Reviewing the loop condition and array indexes
-                        can help you avoid repeating this error.
-                    </p>
-
-                    <div class="recommendation-label">
-                        Recommended Revision
-                    </div>
-
-                    <div class="recommendation-path">
-                        Arrays
-                        <span>→</span>
-                        Indexing
-                        <span>→</span>
-                        Loop Boundaries
-                    </div>
-
-                    <div>
-                        <a href="practice.html" class="primary-btn">
-                            Go to Practice →
-                        </a>
-                    </div>
-
-                </div>
+            <div class="recommendation-path" id="recommendationPath">
+                Loading recommendation...
             </div>
 
-        </section>
+            <div>
+                <a href="practice.html" class="primary-btn">
+                    Go to Practice →
+                </a>
+            </div>
+        </div>
+    </div>
 
+</section>
         <!-- TOP RECURRING MISTAKES -->
         <section class="content-panel">
 
@@ -829,52 +918,378 @@
 
         </section>
 
-        <!-- INFORMATION NOTE -->
-        <div class="demo-note">
-            <span aria-hidden="true">i</span>
-            <div>
-                <strong>Demo data:</strong>
-                These counts are sample values for frontend testing.
-                Actual recurring patterns will need to be calculated
-                from saved analysis records and their mistake categories.
-            </div>
-        </div>
-
+       
+<!-- INFORMATION NOTE -->
+<div class="demo-note">
+    <span aria-hidden="true">i</span>
+    <div>
+        <strong>Live data:</strong>
+        Recurring patterns are calculated from your saved analysis records.
+        Counts reflect the analyses currently stored in your database.
+    </div>
+</div>
     </main>
 </div>
 
+
 <script>
-    // Search the recurring mistakes list
+    const API_URL = "http://localhost:8081/api/analysis";
+
     const mistakeSearch = document.getElementById("mistakeSearch");
-    const mistakeItems = Array.from(
-        document.querySelectorAll(".mistake-item")
-    );
+    const mistakeList = document.querySelector(".mistake-list") ||
+                        document.querySelector(".mistakes-list") ||
+                        document.querySelector(".recurring-list");
     const emptyState = document.getElementById("emptyState");
 
+    let recurringPatterns = [];
+
+    function getField(record, ...keys) {
+        for (const key of keys) {
+            if (record[key] !== null && record[key] !== undefined &&
+                String(record[key]).trim() !== "") {
+                return record[key];
+            }
+        }
+        return "";
+    }
+
+    function normalizeLanguage(language) {
+        const value = String(language || "Unknown").trim().toLowerCase();
+        if (value === "c++") return "cpp";
+        return value;
+    }
+
+    function getPattern(record) {
+        const title = String(
+            getField(record, "issue_title", "issueTitle") || "Unspecified issue"
+        );
+        const category = String(record.category || "Other");
+        const concept = String(
+            getField(record, "concept_to_revise", "conceptToRevise") || ""
+        );
+        const description = String(
+            getField(record, "explanation", "what_went_wrong", "whatWentWrong") || ""
+        );
+
+        const text = (title + " " + concept + " " + description).toLowerCase();
+
+        let key;
+        let label;
+        let topic;
+
+        if (/division by zero|divide by zero/.test(text)) {
+            key = "division-zero";
+            label = "Division by Zero";
+            topic = "Division and exception handling";
+        } else if (/arrayindexoutofbounds|array index out of bounds|array boundary/.test(text)) {
+            key = "array-bounds";
+            label = "Array Index Out of Bounds";
+            topic = "Array indexing and loop boundaries";
+        } else if (/stringindexoutofbounds|string index out of bounds|charat/.test(text)) {
+            key = "string-bounds";
+            label = "String Index Out of Bounds";
+            topic = "String indexing and bounds checking";
+        } else if (/missing semicolon|semicolon/.test(text)) {
+            key = "semicolon";
+            label = "Missing Semicolon";
+            topic = "Syntax and statement termination";
+        } else if (/undefined variable|referenceerror|nameerror|case mismatch/.test(text)) {
+            key = "undefined-variable";
+            label = "Undefined Variable";
+            topic = "Variable naming and references";
+        } else if (/null pointer|nullpointerexception/.test(text)) {
+            key = "null-pointer";
+            label = "Null Pointer Exception";
+            topic = "Null values and object references";
+        } else if (/sizee|incorrect method name|non-existent method/.test(text)) {
+            key = "method-name";
+            label = "Incorrect Method Name";
+            topic = "Method names and API usage";
+        } else if (/type mismatch|assigning string to int/.test(text)) {
+            key = "type-mismatch";
+            label = "Type Mismatch";
+            topic = "Data types and type conversion";
+        } else if (/input|scanner|format specifier/.test(text)) {
+            key = "input-format";
+            label = "Input Format Error";
+            topic = "Input handling and formatting";
+        } else {
+            key = "other:" + (title + "|" + category).toLowerCase();
+            label = title;
+            topic = concept || category + " review";
+        }
+
+        return {
+            key,
+            label,
+            topic,
+            category,
+            language: normalizeLanguage(record.language),
+            id: record.id,
+            date: getField(record, "created_at", "createdAt"),
+            description: description || "No explanation saved."
+        };
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
+    }
+
+    function labelForLanguage(language) {
+        const labels = {
+            java: "Java",
+            python: "Python",
+            javascript: "JavaScript",
+            cpp: "C++",
+            c: "C"
+        };
+        return labels[language] ||
+            language.charAt(0).toUpperCase() + language.slice(1);
+    }
+
+function updateSummary(records, patterns) {
+    const repeatedCount = records.filter(record => {
+        const title = String(
+            getField(record, "issue_title", "issueTitle")
+        ).toLowerCase();
+
+        return title &&
+            !/no issues found|no issue detected|no errors found|no error detected/.test(title);
+    }).length;
+
+    const repeatedPatterns = patterns.filter(pattern => pattern.count > 1);
+
+    document.getElementById("totalRepeats").textContent = repeatedCount;
+
+    document.getElementById("patternCount").textContent =
+        repeatedPatterns.length;
+
+    const topPriority = document.getElementById("topPriority");
+
+    if (topPriority) {
+        topPriority.textContent = repeatedPatterns.length > 0
+            ? repeatedPatterns[0].label
+            : "None yet";
+    }
+    
+    const alertTitle = document.getElementById("alertTitle");
+    const alertDescription = document.getElementById("alertDescription");
+    const recommendationPath = document.getElementById("recommendationPath");
+
+    if (repeatedPatterns.length > 0) {
+        const top = repeatedPatterns[0];
+
+        alertTitle.textContent = "Recurring Pattern Detected";
+
+        alertDescription.textContent =
+            "You have encountered " + top.count + " instances of " +
+            top.label + " across your saved analyses. Review the related " +
+            "concept to help avoid repeating this mistake.";
+
+        recommendationPath.textContent = top.topic;
+    } else {
+        alertTitle.textContent = "No Recurring Patterns Yet";
+
+        alertDescription.textContent =
+            "No mistake type has appeared more than once in your saved analyses.";
+
+        recommendationPath.textContent =
+            "Keep practising and reviewing your analyses";
+    }
+}
+    function renderPatterns(patterns) {
+        if (!mistakeList) {
+            console.error(
+                "Could not find the recurring mistakes list container. " +
+                "Please check its HTML class before changing the page."
+            );
+            if (emptyState) {
+                emptyState.style.display = "block";
+                emptyState.textContent =
+                    "The mistakes list container could not be found.";
+            }
+            return;
+        }
+
+        mistakeList.innerHTML = "";
+
+        if (patterns.length === 0) {
+            if (emptyState) {
+                emptyState.style.display = "block";
+                emptyState.textContent =
+                    "No recurring mistakes found in your saved analyses yet.";
+            }
+            return;
+        }
+
+        patterns.forEach(pattern => {
+            const item = document.createElement("div");
+            item.className = "mistake-item";
+            item.dataset.search = [
+                pattern.label,
+                pattern.category,
+                pattern.topic,
+                pattern.language,
+                pattern.description
+            ].join(" ");
+
+            const countLabel = pattern.count === 1
+                ? "1 time" : pattern.count + " times";
+
+            item.innerHTML = `
+                <div class="mistake-icon" aria-hidden="true">
+                    ${escapeHtml(pattern.label.charAt(0).toUpperCase())}
+                </div>
+                <div class="mistake-info">
+                    <h3>${escapeHtml(pattern.label)}</h3>
+                    <div class="mistake-meta">
+                        <span class="mistake-tag">
+                            ${escapeHtml(pattern.category)}
+                        </span>
+                        <span>${escapeHtml(
+                            pattern.languages.map(labelForLanguage).join(", ")
+                        )}</span>
+                        <span>· ${escapeHtml(pattern.topic)}</span>
+                    </div>
+                    <p>${escapeHtml(pattern.description)}</p>
+                </div>
+                <div class="mistake-count">
+                    <strong>${countLabel}</strong>
+                    <span>${pattern.count > 1 ? "Repeated pattern" : "Seen once"}</span>
+                </div>
+            `;
+
+            mistakeList.appendChild(item);
+        });
+
+        filterMistakes();
+    }
+
     function filterMistakes() {
+        if (!mistakeSearch || !mistakeList) return;
+
         const query = mistakeSearch.value.trim().toLowerCase();
+        const items = Array.from(
+            mistakeList.querySelectorAll(".mistake-item")
+        );
         let visibleCount = 0;
 
-        mistakeItems.forEach(function (item) {
+        items.forEach(item => {
             const searchableText = (
-                item.dataset.search + " " + item.textContent
+                (item.dataset.search || "") + " " + item.textContent
             ).toLowerCase();
 
             const matches = searchableText.includes(query);
-
             item.style.display = matches ? "grid" : "none";
 
-            if (matches) {
-                visibleCount++;
-            }
+            if (matches) visibleCount++;
         });
 
-        emptyState.style.display =
-            visibleCount === 0 ? "block" : "none";
+        if (emptyState) {
+            emptyState.style.display = visibleCount === 0 ? "block" : "none";
+            if (visibleCount === 0 && recurringPatterns.length > 0) {
+                emptyState.textContent =
+                    "No matching mistakes found. Try another search.";
+            }
+        }
     }
 
-    mistakeSearch.addEventListener("input", filterMistakes);
-</script>
+    async function loadRecurringMistakes() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) {
+                throw new Error("API returned status " + response.status);
+            }
 
+            const records = await response.json();
+            if (!Array.isArray(records)) {
+                throw new Error("The analysis API did not return a list.");
+            }
+
+            const grouped = new Map();
+
+            records.forEach(record => {
+                const pattern = getPattern(record);
+
+if (
+    /no issues found|no issue detected|no errors found|no error detected/i
+        .test(pattern.label)
+) {
+    return;
+}
+
+                if (!grouped.has(pattern.key)) {
+                    grouped.set(pattern.key, {
+                        ...pattern,
+                        count: 0,
+                        languages: [],
+                        descriptions: []
+                    });
+                }
+
+                const existing = grouped.get(pattern.key);
+                existing.count++;
+
+                if (!existing.languages.includes(pattern.language)) {
+                    existing.languages.push(pattern.language);
+                }
+
+                if (pattern.description &&
+                    !existing.descriptions.includes(pattern.description)) {
+                    existing.descriptions.push(pattern.description);
+                }
+            });
+
+            recurringPatterns = Array.from(grouped.values())
+                .map(pattern => ({
+                    ...pattern,
+                    description: pattern.descriptions[0] || pattern.description
+                }))
+                .sort((a, b) => b.count - a.count);
+
+            updateSummary(records, recurringPatterns);
+            renderPatterns(recurringPatterns);
+
+            const notice = document.querySelector(".demo-notice");
+            if (notice) {
+                notice.textContent =
+                    "Live data: recurring patterns are calculated from your saved analysis records.";
+            }
+
+            const noticeText = Array.from(document.querySelectorAll("p, div"))
+                .find(element =>
+                    element.children.length === 0 &&
+                    element.textContent.includes(
+                        "Actual recurring patterns will need to be calculated"
+                    )
+                );
+
+            if (noticeText) {
+                noticeText.textContent =
+                    "Recurring patterns are calculated from your saved analysis records.";
+            }
+        } catch (error) {
+            console.error("Could not load recurring mistakes:", error);
+
+            if (emptyState) {
+                emptyState.style.display = "block";
+                emptyState.textContent =
+                    "Could not load saved analyses. Make sure the backend is running on port 8081, then refresh this page.";
+            }
+        }
+    }
+
+    if (mistakeSearch) {
+        mistakeSearch.addEventListener("input", filterMistakes);
+    }
+
+    loadRecurringMistakes();
+</script>
 </body>
 </html>

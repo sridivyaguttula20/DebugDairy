@@ -448,30 +448,75 @@
         });
     });
 
+  
     // Handle Analyze Code button
-   analysisForm.addEventListener("submit", function (event) {
-    event.preventDefault();
+    analysisForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-    if (!editor) {
-        alert("Code editor is still loading. Please wait.");
-        return;
-    }
+        if (!editor) {
+            alert("Code editor is still loading. Please wait.");
+            return;
+        }
 
-    const code = editor.getValue().trim();
-    const language = document.getElementById("language").value;
+        const code = editor.getValue().trim();
+        const language = languageSelect.value;
 
-    if (!code) {
-        alert("Please enter your code before analyzing.");
-        return;
-    }
+        if (!code) {
+            alert("Please enter your code before analyzing.");
+            return;
+        }
 
-    // Temporary frontend navigation.
-    // Actual AI analysis requires backend integration.
-    sessionStorage.setItem("debugDairyCode", code);
-    sessionStorage.setItem("debugDairyLanguage", language);
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = "Analyzing...";
+        analysisMessage.textContent = "Analyzing your code. Please wait...";
 
-    window.location.href = "analysis-result.html";
-});
+        try {
+            const response = await fetch(
+                "http://localhost:8081/api/analysis",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        language: language
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(
+                    `Analysis failed (${response.status}): ${errorText}`
+                );
+            }
+
+            const result = await response.json();
+
+            // Save the actual backend response for the result page.
+            sessionStorage.setItem(
+                "debugDairyAnalysis",
+                JSON.stringify(result)
+            );
+
+            sessionStorage.setItem("debugDairyCode", code);
+            sessionStorage.setItem("debugDairyLanguage", language);
+
+            window.location.href = "analysis-result.html";
+
+        } catch (error) {
+            console.error("Analysis error:", error);
+            analysisMessage.textContent =
+                "Unable to analyze your code. Check that the backend is running and try again.";
+            alert(analysisMessage.textContent);
+
+        } finally {
+            analyzeButton.disabled = false;
+            analyzeButton.textContent = "Analyze Code";
+        }
+    });
+
 </script>
 </body>
 </html>

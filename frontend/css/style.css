@@ -442,6 +442,9 @@
 .legend-dot.other {
     background: #54c4a0;
 }
+.legend-dot.runtime {
+    background-color: #f4b740;
+}
 
 .panel-footer-link {
     display: block;

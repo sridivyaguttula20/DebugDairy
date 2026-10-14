@@ -640,19 +640,45 @@ function showNotice(message) {
     notice.textContent = message;
     notice.classList.add("visible");
 }
-
 function getStoredAnalysis() {
-    for (const key of ["analysisResult", "debugDairyAnalysis", "analysisData"]) {
+    const keys = [
+        "debugDairyAnalysis",
+        "analysisResult",
+        "analysisData"
+    ];
+
+    for (const key of keys) {
         try {
             const raw = sessionStorage.getItem(key);
-            if (!raw) continue;
+
+            if (!raw) {
+                continue;
+            }
 
             const data = JSON.parse(raw);
-            if (data && typeof data === "object") return data;
+
+            if (
+                data &&
+                typeof data === "object" &&
+                !Array.isArray(data) &&
+                (
+                    data.id ||
+                    data.issueTitle ||
+                    data.whatWentWrong ||
+                    data.originalCode ||
+                    data.submittedCode
+                )
+            ) {
+                return data;
+            }
         } catch (error) {
-            // Ignore invalid or unavailable session data.
+            console.warn(
+                "Unable to read stored analysis:",
+                error
+            );
         }
     }
+
     return null;
 }
 
@@ -660,6 +686,7 @@ function getStoredAnalysis() {
   More specific concepts come first to reduce keyword collisions.
   Keyword matching provides a suggestion, not a guaranteed diagnosis.
 */
+
 const conceptRules = [
     {
         id: "strings",
@@ -811,61 +838,76 @@ const conceptRules = [
             "arr.length",
             "array"
         ]
+    },
+    {
+        id: "exceptions",
+        title: "Exception Handling",
+        topic: "Exception Handling",
+        category: "Runtime Error",
+        description: "Learn how to handle runtime errors, prevent division by zero, and use try-catch blocks safely.",
+        keywords: [
+            "arithmeticexception",
+            "division by zero",
+            "divide by zero",
+            "exception handling",
+            "try-catch",
+            "try catch",
+            "safe division"
+        ]
     }
 ];
 
+
 function findConcept(analysis) {
-    const errorTitle = String(analysis.errorTitle || analysis.errorType || "");
-    const errorMessage = String(analysis.errorMessage || analysis.error || "");
-    const code = String(analysis.originalCode || analysis.submittedCode || "");
-    const category = String(analysis.category || "");
-
-    const combined = `${errorTitle}\n${errorMessage}\n${code}\n${category}`
-        .toLowerCase();
-
-    // Strong exception names get priority over broad keywords.
-    if (combined.includes("arrayindexoutofboundsexception")) {
-        return conceptRules.find(item => item.id === "array");
-    }
-
-    if (combined.includes("stringindexoutofboundsexception")) {
-        return conceptRules.find(item => item.id === "strings");
-    }
-
-    if (combined.includes("inputmismatchexception") ||
-        combined.includes("nosuchelementexception") ||
-        combined.includes("numberformatexception")) {
-        return conceptRules.find(item => item.id === "input");
-    }
-
-    // Avoid matching a concept using only a generic word such as "array".
-    const rulesToCheck = conceptRules.filter(rule =>
-        !["array", "loops"].includes(rule.id)
+        // Prioritize the data structure explicitly used in the submitted code.
+    const submittedCode = String(
+        analysis.originalCode || analysis.submittedCode || ""
     );
 
-    const specificMatch = rulesToCheck.find(rule =>
-        rule.keywords.some(keyword => combined.includes(keyword))
-    );
-
-    if (specificMatch) return specificMatch;
-
-    // Detect loop boundary code patterns.
-    if (/i\s*<=\s*\w+\.length/.test(combined) ||
-        combined.includes("loop boundary") ||
-        combined.includes("off-by-one") ||
-        combined.includes("off by one")) {
-        return conceptRules.find(item => item.id === "loops");
+    if (/\bHashMap\s*</i.test(submittedCode) ||
+        /\bHashMap\s+\w+\s*=/.test(submittedCode)) {
+        return {
+            id: "HashMap",
+            title: "HashMap",
+            topic: "Collections",
+            category: "HashMap / Collections",
+            description: "Learn HashMap key-value pairs, put(), get(), remove(), and size()."
+        };
     }
+    // Get the concept recommended by the AI.
+    const recommendedConcept = String(
+        analysis.conceptToRevise || ""
+    ).trim().toLowerCase();
 
-    // General array errors come after more specific concepts.
-    if (combined.includes("array") ||
-        combined.includes("index out of bounds") ||
-        combined.includes("arr.length")) {
-        return conceptRules.find(item => item.id === "array");
-    }
+    // Match the AI recommendation against existing learning guides.
+    const normalize = (value) =>
+        String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
 
-    return null;
+    const match = conceptRules.find(rule => {
+        const id = normalize(rule.id);
+        const title = normalize(rule.title);
+        const topic = normalize(rule.topic);
+        const recommendation = normalize(recommendedConcept);
+
+        return recommendation && (
+            recommendation === id ||
+            recommendation === title ||
+            recommendation === topic ||
+            recommendation.includes(title) ||
+            title.includes(recommendation) ||
+            recommendation.includes(topic) ||
+            recommendation.includes(id)
+        );
+    });
+
+    // Return a guide only when it matches the AI recommendation.
+    return match || null;
 }
+
+
+
 
 function setText(id, value) {
     const element = $(id);
@@ -887,6 +929,7 @@ function setOptionalText(id, value) {
 
 function renderConcept(analysis) {
     const match = findConcept(analysis);
+    const aiConcept = analysis.conceptToRevise || "";
     const language = analysis.language || "Programming";
 
     if (match) {
@@ -905,11 +948,11 @@ function renderConcept(analysis) {
         );
         setText(
             "conceptReason",
-            "This suggested concept was matched using keywords in the submitted code and error details."
+            "Recommended by AI based on the submitted code. A dedicated guide may not be available yet."
         );
 
-        $("conceptLink").href =
-            `concept-popup.html?concept=${encodeURIComponent(match.id)}`;
+      $("conceptLink").href =
+    `concept-popup.html?concept=${encodeURIComponent(match.id)}`;
 
         $("conceptLink").textContent = "Learn Concept ↗";
         $("conceptLink").setAttribute(
@@ -917,7 +960,10 @@ function renderConcept(analysis) {
             `Learn about ${match.title}`
         );
     } else {
-        setText("conceptTitle", "Explore All Programming Concepts");
+        setText(
+    "conceptTitle",
+    aiConcept ? `Recommended: ${aiConcept}` : "Explore All Programming Concepts"
+);
         setText(
             "conceptDescription",
             "Browse arrays, strings, loops, input handling, OOP, methods, recursion, searching, sorting, and ArrayList."
@@ -931,7 +977,9 @@ function renderConcept(analysis) {
         );
         setText(
             "conceptSummary",
-            "Explore the concept library and choose a topic that matches the error in your code."
+            aiConcept
+    ? `Learn about ${aiConcept} using the explanation above. A dedicated guide may not be available yet.`
+    : "Explore the concept library and choose a topic that matches the error in your code."
         );
         setText(
             "conceptReason",
@@ -948,70 +996,99 @@ function renderConcept(analysis) {
     }
 }
 
+
+
 function renderAnalysis(analysis) {
     const language = analysis.language || "Java";
-    const originalCode = analysis.originalCode || analysis.submittedCode || "";
-    const errorMessage = analysis.errorMessage || analysis.error || "";
-    const hasAnalysis = Boolean(
-        originalCode || errorMessage || analysis.errorTitle || analysis.errorType
-    );
 
-    setText("resultMode", hasAnalysis ? "Analysis data received" : "Sample result");
+    const originalCode =
+        analysis.originalCode || analysis.submittedCode || "";
 
-    setText(
-        "errorTitle",
+    const issueTitle =
+        analysis.issueTitle ||
         analysis.errorTitle ||
         analysis.errorType ||
-        (hasAnalysis ? "Code review" : "Sample analysis result")
+        "Code Review";
+
+    const hasAnalysis = Boolean(
+        analysis.id ||
+        analysis.issueTitle ||
+        analysis.whatWentWrong ||
+        originalCode
     );
+
+    setText(
+        "resultMode",
+        hasAnalysis ? "AI Analysis Complete" : "Sample Result"
+    );
+
+    setText("errorTitle", issueTitle);
 
     setText(
         "errorType",
-        `${language} · ${errorMessage || "Review the code and analysis details."}`
+        `${language} · ${analysis.category || "Code Review"}`
     );
 
-    setOptionalText("whatWentWrong", analysis.whatWentWrong);
-    setOptionalText("whereMistake", analysis.whereMistake);
-    setOptionalText("whyHappened", analysis.whyHappened);
-    setOptionalText("howToCorrect", analysis.howToCorrect);
+    // Each section uses its own AI-generated field.
+    setText(
+        "whatWentWrong",
+        analysis.whatWentWrong ||
+        "No separate explanation was provided."
+    );
 
-    const codeToShow = analysis.correctedCode || analysis.fixedCode;
+    setText(
+        "whereMistake",
+        analysis.whereIsTheMistake ||
+        "No specific mistake location was identified."
+    );
 
-    if (codeToShow) {
-        $("correctedCode").textContent = codeToShow;
-    } else if (hasAnalysis) {
-        $("correctedCode").textContent =
-            "No corrected code was provided by the analysis process.";
-    }
+    setText(
+        "whyHappened",
+        analysis.whyItHappened ||
+        "The underlying cause could not be determined confidently."
+    );
 
-    const combined = `${errorMessage}\n${originalCode}`.toLowerCase();
-    let displayedMistake = "";
+    setText(
+        "howToCorrect",
+        analysis.howToCorrectIt ||
+        "Review the submitted code and verify the suggested correction."
+    );
 
-    const loopMatch = originalCode.match(/i\s*<=\s*\w+\.length/);
-    if (loopMatch) {
-        displayedMistake = loopMatch[0];
-    } else if (errorMessage) {
-        displayedMistake = errorMessage;
-    }
+    const correctedCode =
+        analysis.correctedCode || analysis.fixedCode || "";
 
-    $("mistakeLine").textContent = displayedMistake;
-    $("mistakeLine").hidden = !displayedMistake;
+    $("correctedCode").textContent =
+        correctedCode || "No corrected code was provided.";
 
-    if (hasAnalysis) {
-        $("resultBanner").className = "result-status";
-        $("resultIcon").textContent = "i";
-        setText(
-            "severityTag",
-            "Verify Suggested Fix"
-        );
-    } else {
-        $("resultBanner").className = "result-status";
-        $("resultIcon").textContent = "✦";
-        setText("errorTitle", "Sample analysis result");
-        setText("errorType", "Demo example · Java array boundary");
-    }
+    $("mistakeLine").textContent =
+        analysis.whereIsTheMistake || issueTitle;
 
-    renderConcept(analysis);
+    $("mistakeLine").hidden = !hasAnalysis;
+
+    $("resultBanner").className = "result-status";
+    $("resultIcon").textContent = "✓";
+
+    setText(
+        "severityTag",
+        analysis.howToCorrectIt?.trim().toLowerCase().startsWith("no correction needed")
+    ? "No Fix Needed"
+    : hasAnalysis
+        ? "AI Suggested Fix"
+        : "Sample"
+    );
+
+    renderConcept({
+        ...analysis,
+        language,
+        errorTitle: issueTitle,
+        errorMessage: [
+            analysis.whatWentWrong,
+            analysis.whereIsTheMistake,
+            analysis.whyItHappened
+        ].filter(Boolean).join(" "),
+        originalCode,
+        category: analysis.category || "General"
+    });
 }
 
 $("copyCodeButton").addEventListener("click", async () => {
@@ -1048,23 +1125,59 @@ $("copyCodeButton").addEventListener("click", async () => {
 
 const params = new URLSearchParams(window.location.search);
 const storedAnalysis = getStoredAnalysis() || {};
-
 const analysis = {
     ...storedAnalysis,
-    language: params.get("language") || storedAnalysis.language || "Java",
-    errorTitle: params.get("errorTitle") || storedAnalysis.errorTitle || "",
+
+    id: storedAnalysis.id,
+
+    language:
+        params.get("language") ||
+        storedAnalysis.language ||
+        sessionStorage.getItem("debugDairyLanguage") ||
+        "Java",
+
+    issueTitle:
+        storedAnalysis.issueTitle ||
+        storedAnalysis.errorTitle ||
+        "Code Review",
+
+    errorTitle:
+        params.get("errorTitle") ||
+        storedAnalysis.errorTitle ||
+        storedAnalysis.issueTitle ||
+        "",
+
+    conceptToRevise:
+        storedAnalysis.conceptToRevise || "",
+
+    whatWentWrong:
+        storedAnalysis.whatWentWrong || "",
+
+    whereIsTheMistake:
+        storedAnalysis.whereIsTheMistake || "",
+
+    whyItHappened:
+        storedAnalysis.whyItHappened || "",
+
+    howToCorrectIt:
+        storedAnalysis.howToCorrectIt || "",
+
     errorMessage:
         params.get("errorMessage") ||
         params.get("error") ||
         storedAnalysis.errorMessage ||
         storedAnalysis.error ||
+        storedAnalysis.whatWentWrong ||
         "",
+
     originalCode:
         params.get("originalCode") ||
         params.get("code") ||
         storedAnalysis.originalCode ||
         storedAnalysis.submittedCode ||
+        sessionStorage.getItem("debugDairyCode") ||
         "",
+
     correctedCode:
         params.get("correctedCode") ||
         storedAnalysis.correctedCode ||

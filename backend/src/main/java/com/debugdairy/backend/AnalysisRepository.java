@@ -24,9 +24,20 @@ public class AnalysisRepository {
 
         String sql = """
             INSERT INTO code_analyses
-            (language, submitted_code, issue_title, explanation,
-             corrected_code, category, concept_to_revise)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (
+                language,
+                submitted_code,
+                issue_title,
+                explanation,
+                what_went_wrong,
+                where_is_the_mistake,
+                why_it_happened,
+                how_to_correct_it,
+                corrected_code,
+                category,
+                concept_to_revise
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
         jdbcTemplate.update(
@@ -34,7 +45,11 @@ public class AnalysisRepository {
                 language,
                 submittedCode,
                 analysis.get("issueTitle"),
-                analysis.get("explanation"),
+                analysis.get("whatWentWrong"),
+                analysis.get("whatWentWrong"),
+                analysis.get("whereIsTheMistake"),
+                analysis.get("whyItHappened"),
+                analysis.get("howToCorrectIt"),
                 analysis.get("correctedCode"),
                 analysis.get("category"),
                 analysis.get("conceptToRevise")
@@ -48,7 +63,9 @@ public class AnalysisRepository {
     public List<Map<String, Object>> findAll() {
         String sql = """
             SELECT id, language, submitted_code, issue_title,
-                   explanation, corrected_code, category,
+                   explanation, what_went_wrong,
+                   where_is_the_mistake, why_it_happened,
+                   how_to_correct_it, corrected_code, category,
                    concept_to_revise, created_at
             FROM code_analyses
             ORDER BY created_at DESC
@@ -61,7 +78,9 @@ public class AnalysisRepository {
     public Map<String, Object> findById(Long id) {
         String sql = """
             SELECT id, language, submitted_code, issue_title,
-                   explanation, corrected_code, category,
+                   explanation, what_went_wrong,
+                   where_is_the_mistake, why_it_happened,
+                   how_to_correct_it, corrected_code, category,
                    concept_to_revise, created_at
             FROM code_analyses
             WHERE id = ?

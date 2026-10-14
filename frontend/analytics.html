@@ -521,27 +521,28 @@
                 <p class="page-subtitle">
                     Understand your coding mistakes and track your progress.
                 </p>
-            </div>
+            </div>            
+<div class="period-filters" aria-label="Choose date range">
+    <button class="period-btn active" data-days="1"
+            type="button" aria-pressed="true">
+        1 Day
+    </button>
 
-            <div class="period-filters" aria-label="Choose date range">
-                <button class="period-btn" data-days="7" type="button">
-                    7 Days
-                </button>
+    <button class="period-btn" data-days="5"
+            type="button" aria-pressed="false">
+        5 Days
+    </button>
 
-                <button class="period-btn active" data-days="30"
-                        type="button" aria-pressed="true">
-                    30 Days
-                </button>
+    <button class="period-btn" data-days="30"
+            type="button" aria-pressed="false">
+        1 Month
+    </button>
 
-                <button class="period-btn" data-days="90" type="button">
-                    3 Months
-                </button>
-
-                <button class="period-btn" data-days="180" type="button">
-                    6 Months
-                </button>
-            </div>
-
+    <button class="period-btn" data-days="90"
+            type="button" aria-pressed="false">
+        3 Months
+    </button>
+</div>
         </header>
 
         <section class="analytics-grid">
@@ -651,248 +652,444 @@
 
     </main>
 
-    <script>
-        /*
-         * DEMO DATA ONLY.
-         * Connect the Spring Boot API here when backend analytics is ready.
-         */
+    
+<script>
+const API_URL = "http://localhost:8081/api/analysis";
 
-        const categoryLabels = [
-            "Logic", "Syntax", "Concept", "Input", "Others"
-        ];
+const categoryColors = [
+    "#7051df", "#a363e8", "#f2b541", "#ee708b",
+    "#50c1a3", "#367bea", "#e94c91"
+];
 
-        const categoryColors = [
-            "#7051df",
-            "#a363e8",
-            "#f2b541",
-            "#ee708b",
-            "#50c1a3"
-        ];
+const languageColors = [
+    "#367bea", "#51bd91", "#e94c91", "#f2b541",
+    "#8060e9", "#ee708b"
+];
 
-        const languageLabels = [
-            "Java", "Python", "C++", "Others"
-        ];
+let allRecords = [];
+let categoryChart;
+let timelineChart;
+let languageChart;
+let selectedDays = 1;
 
-        const languageColors = [
-            "#367bea",
-            "#51bd91",
-            "#e94c91",
-            "#f2b541"
-        ];
-
-        const demoData = {
-            7: {
-                categories: [4, 2, 3, 1, 1],
-                languages: [5, 2, 1, 1],
-                timeline: [2, 4, 3, 5, 2, 3, 1]
-            },
-
-            30: {
-                categories: [15, 9, 10, 6, 4],
-                languages: [12, 6, 4, 2],
-                timeline: [3, 8, 5, 6, 10, 7, 4, 6, 3, 5, 9, 11]
-            },
-
-            90: {
-                categories: [32, 21, 25, 15, 8],
-                languages: [28, 14, 9, 5],
-                timeline: [5, 8, 6, 10, 7, 12, 9, 6, 8, 11, 7, 4]
-            },
-
-            180: {
-                categories: [65, 42, 48, 28, 17],
-                languages: [54, 28, 18, 10],
-                timeline: [8, 12, 9, 15, 11, 13, 7, 10, 14, 8, 12, 6]
-            }
-        };
-
-        // Do not initialize charts if Chart.js failed to load.
-        if (typeof Chart === "undefined") {
-            document.querySelectorAll(".chart-container").forEach(container => {
-                container.textContent =
-                    "Charts could not load. Check your internet connection.";
-            });
-        } else {
-
-            // Mistake Categories: bar chart
-            const categoryChart = new Chart(
-                document.getElementById("categoryChart"),
-                {
-                    type: "bar",
-
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [{
-                            label: "Mistakes",
-                            data: demoData[30].categories,
-                            backgroundColor: categoryColors,
-                            borderRadius: 4,
-                            maxBarThickness: 46
-                        }]
-                    },
-
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-
-                        plugins: {
-                            legend: { display: false }
-                        },
-
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0 },
-                                grid: { color: "#edf0f6" }
-                            },
-
-                            x: {
-                                grid: { display: false }
-                            }
-                        }
-                    }
-                }
-            );
-
-            // Mistakes Over Time: line chart
-            const timelineChart = new Chart(
-                document.getElementById("timelineChart"),
-                {
-                    type: "line",
-
-                    data: {
-                        labels: [],
-                        datasets: [{
-                            label: "Recorded mistakes",
-                            data: demoData[30].timeline,
-                            borderColor: "#8060e9",
-                            backgroundColor: "rgba(128, 96, 233, 0.12)",
-                            fill: true,
-                            tension: 0.35,
-                            pointRadius: 3,
-                            pointBackgroundColor: "#8060e9"
-                        }]
-                    },
-
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-
-                        plugins: {
-                            legend: { display: false }
-                        },
-
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0 },
-                                grid: { color: "#edf0f6" }
-                            },
-
-                            x: {
-                                grid: { display: false },
-                                ticks: { maxTicksLimit: 7 }
-                            }
-                        }
-                    }
-                }
-            );
-
-            // Mistakes by Language: doughnut chart
-            const languageChart = new Chart(
-                document.getElementById("languageChart"),
-                {
-                    type: "doughnut",
-
-                    data: {
-                        labels: languageLabels,
-                        datasets: [{
-                            data: demoData[30].languages,
-                            backgroundColor: languageColors,
-                            borderColor: "#ffffff",
-                            borderWidth: 2
-                        }]
-                    },
-
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: "58%",
-
-                        plugins: {
-                            legend: {
-                                position: "bottom"
-                            }
-                        }
-                    }
-                }
-            );
-
-            // Build readable date labels for the selected time period.
-            function createDateLabels(days, count) {
-                const labels = [];
-                const today = new Date();
-
-                for (let i = count - 1; i >= 0; i--) {
-                    const date = new Date(today);
-
-                    date.setDate(
-                        today.getDate() -
-                        Math.round(
-                            i * (days - 1) / Math.max(count - 1, 1)
-                        )
-                    );
-
-                    labels.push(
-                        date.toLocaleDateString("en-IN", {
-                            month: "short",
-                            day: "numeric"
-                        })
-                    );
-                }
-
-                return labels;
-            }
-
-            // Update all three charts when the period changes.
-            function updateAnalytics(days) {
-                const selectedData = demoData[days];
-
-                document.querySelectorAll(".period-btn").forEach(button => {
-                    const isActive = Number(button.dataset.days) === days;
-
-                    button.classList.toggle("active", isActive);
-                    button.setAttribute("aria-pressed", String(isActive));
-                });
-
-                categoryChart.data.datasets[0].data =
-                    selectedData.categories;
-                categoryChart.update();
-
-                timelineChart.data.labels = createDateLabels(
-                    days,
-                    selectedData.timeline.length
-                );
-
-                timelineChart.data.datasets[0].data =
-                    selectedData.timeline;
-                timelineChart.update();
-
-                languageChart.data.datasets[0].data =
-                    selectedData.languages;
-                languageChart.update();
-            }
-
-            document.querySelectorAll(".period-btn").forEach(button => {
-                button.addEventListener("click", () => {
-                    updateAnalytics(Number(button.dataset.days));
-                });
-            });
-
-            // Initial view: 30 Days
-            updateAnalytics(30);
+function field(record, ...keys) {
+    for (const key of keys) {
+        if (record[key] !== null &&
+            record[key] !== undefined &&
+            String(record[key]).trim() !== "") {
+            return record[key];
         }
-    </script>
+    }
+    return "";
+}
 
+function getTitle(record) {
+    return String(
+        field(record, "issue_title", "issueTitle") || "Unspecified issue"
+    ).trim();
+}
+
+function isActualMistake(record) {
+    const title = getTitle(record).toLowerCase();
+    const category = String(record.category || "").toLowerCase();
+
+    if (/no issues found|no issue detected|no errors found|no error detected|no issues detected/.test(title)) {
+        return false;
+    }
+
+    if (/no issue|no error|no mistake|general review/.test(category) &&
+        /no issues found|no issue detected|no errors found|no error detected|no issues detected/.test(title)) {
+        return false;
+    }
+
+    return true;
+}
+
+function normalizeCategory(category) {
+    const value = String(category || "").trim().toLowerCase();
+
+    if (value.includes("logic")) return "Logic";
+    if (value.includes("syntax") || value.includes("compile")) return "Syntax";
+    if (value.includes("runtime") || value.includes("exception")) return "Runtime";
+    if (value.includes("input")) return "Input";
+
+    // Concept, General Review, Other, and unknown categories
+    // are grouped under Others.
+    return "Others";
+}
+
+function normalizeLanguage(language) {
+    const value = String(language || "Unknown").trim().toLowerCase();
+
+    const labels = {
+        java: "Java",
+        python: "Python",
+        javascript: "JavaScript",
+        js: "JavaScript",
+        "c++": "C++",
+        cpp: "C++",
+        c: "C",
+        "c#": "C#"
+    };
+
+    return labels[value] ||
+        value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getRecordDate(record) {
+    const value = field(record, "created_at", "createdAt");
+    if (!value) return null;
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+
+function getRecordsForPeriod(days) {
+    const now = new Date();
+
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+
+    // Include today and the preceding days.
+    start.setDate(start.getDate() - days + 1);
+
+    return allRecords.filter(record => {
+        const date = getRecordDate(record);
+        return date && date >= start && date <= now;
+    });
+}
+
+
+function groupCounts(records, getKey) {
+    const counts = new Map();
+
+    records.forEach(record => {
+        const key = getKey(record);
+        counts.set(key, (counts.get(key) || 0) + 1);
+    });
+
+    return Array.from(counts.entries())
+        .sort((a, b) => b[1] - a[1]);
+}
+
+function createCharts() {
+    if (typeof Chart === "undefined") {
+        document.querySelectorAll(".chart-container").forEach(container => {
+            container.textContent =
+                "Charts could not load. Check your internet connection.";
+        });
+        return false;
+    }
+
+    categoryChart = new Chart(
+        document.getElementById("categoryChart"),
+        {
+            type: "bar",
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Mistakes",
+                    data: [],
+                    backgroundColor: [],
+                    borderRadius: 4,
+                    maxBarThickness: 46
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        grid: { color: "#edf0f6" }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        }
+    );
+
+    timelineChart = new Chart(
+        document.getElementById("timelineChart"),
+        {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Mistakes",
+                    data: [],
+                    borderColor: "#8060e9",
+                    backgroundColor: "rgba(128, 96, 233, 0.12)",
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointBackgroundColor: "#8060e9"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        grid: { color: "#edf0f6" }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 7 }
+                    }
+                }
+            }
+        }
+    );
+
+    languageChart = new Chart(
+        document.getElementById("languageChart"),
+        {
+            type: "doughnut",
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [],
+                    borderColor: "#ffffff",
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "58%",
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        }
+    );
+
+    return true;
+}
+
+function updateCommonMistakes(records) {
+    const list = document.getElementById("commonMistakes");
+    list.innerHTML = "";
+
+    // Combine mistake names that differ only by letter case
+    const normalizedCounts = new Map();
+
+    records.forEach(record => {
+        const title = getTitle(record);
+
+        if (!title) return;
+
+        const normalizedTitle = title.trim().toLowerCase();
+
+        if (!normalizedTitle) return;
+
+        if (normalizedCounts.has(normalizedTitle)) {
+            normalizedCounts.get(normalizedTitle).count++;
+        } else {
+            normalizedCounts.set(normalizedTitle, {
+                title: title.trim(),
+                count: 1
+            });
+        }
+    });
+
+    const counts = Array.from(normalizedCounts.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+    if (counts.length === 0) {
+        const item = document.createElement("li");
+        item.className = "mistake-item";
+        item.textContent = "No mistakes recorded in this period.";
+        list.appendChild(item);
+        return;
+    }
+
+    counts.forEach(({ title, count }) => {
+        const item = document.createElement("li");
+        item.className = "mistake-item";
+
+        const name = document.createElement("span");
+        name.className = "mistake-name";
+
+        // Display a consistent title for division-by-zero errors
+        name.textContent =
+            title.toLowerCase() === "division by zero"
+                ? "Division by Zero"
+                : title;
+
+        const badge = document.createElement("span");
+        badge.className = "mistake-count";
+        badge.textContent = count;
+
+        item.append(name, badge);
+        list.appendChild(item);
+    });
+}
+function updateAnalytics(days) {
+    selectedDays = days;
+
+    document.querySelectorAll(".period-btn").forEach(button => {
+        const active = Number(button.dataset.days) === days;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+    });
+
+    const periodRecords = getRecordsForPeriod(days);
+
+console.log(
+    "Total records:", allRecords.length,
+    "| Days selected:", days,
+    "| Records matched:", periodRecords.length
+);
+const mistakes = periodRecords.filter(isActualMistake);
+console.log(
+    "Saved categories:",
+    periodRecords.map(record => ({
+        id: record.id,
+        category: record.category,
+        title: getTitle(record)
+    }))
+);
+
+    // Category chart
+    
+const categoryOrder = ["Logic", "Syntax", "Runtime", "Input", "Others"];
+
+const categoryCounts = new Map(
+    groupCounts(
+        mistakes,
+        record => normalizeCategory(record.category)
+    )
+);
+
+categoryChart.data.labels = categoryOrder;
+
+categoryChart.data.datasets[0].data = categoryOrder.map(
+    category => categoryCounts.get(category) || 0
+);
+
+categoryChart.data.datasets[0].backgroundColor =
+    categoryOrder.map((_, index) =>
+        categoryColors[index % categoryColors.length]
+    );
+
+categoryChart.update();
+
+
+    // Language chart
+    const languages = groupCounts(
+        mistakes,
+        record => normalizeLanguage(record.language)
+    );
+    console.log("Language counts:", JSON.stringify(languages));
+
+    languageChart.data.labels = languages.map(item => item[0]);
+    languageChart.data.datasets[0].data = languages.map(item => item[1]);
+    languageChart.data.datasets[0].backgroundColor =
+        languages.map((_, index) =>
+            languageColors[index % languageColors.length]
+        );
+    languageChart.update();
+
+    // Timeline: group actual mistakes by calendar date
+    const dailyCounts = new Map();
+
+    mistakes.forEach(record => {
+        const date = getRecordDate(record);
+        if (!date) return;
+
+        const key = [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            String(date.getDate()).padStart(2, "0")
+        ].join("-");
+
+        dailyCounts.set(key, (dailyCounts.get(key) || 0) + 1);
+    });
+
+    const timeline = Array.from(dailyCounts.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]));
+
+    timelineChart.data.labels = timeline.map(([key]) => {
+        const date = new Date(key + "T00:00:00");
+        return date.toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short"
+        });
+    });
+
+    timelineChart.data.datasets[0].data =
+        timeline.map(([, count]) => count);
+
+    timelineChart.update();
+
+    // Most common mistakes
+    updateCommonMistakes(mistakes);
+}
+
+async function loadAnalytics() {
+    try {
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+            throw new Error("API returned status " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error("The API did not return an analysis list.");
+        }
+
+        allRecords = data;
+
+        if (!createCharts()) return;
+
+        updateAnalytics(selectedDays);
+    } catch (error) {
+        console.error("Analytics loading error:", error);
+
+        document.querySelectorAll(".chart-container").forEach(container => {
+            container.textContent =
+                "Unable to load analytics. Make sure the backend is running on port 8081, then refresh.";
+        });
+
+        const list = document.getElementById("commonMistakes");
+        list.innerHTML = "";
+
+        const item = document.createElement("li");
+        item.className = "mistake-item";
+        item.textContent = "Could not load saved analyses.";
+        list.appendChild(item);
+    }
+}
+
+document.querySelectorAll(".period-btn").forEach(button => {
+    button.addEventListener("click", () => {
+        if (allRecords.length || categoryChart) {
+            updateAnalytics(Number(button.dataset.days));
+        }
+    });
+});
+
+loadAnalytics();
+</script>
 </body>
 </html>

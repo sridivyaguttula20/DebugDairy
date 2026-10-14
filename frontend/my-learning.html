@@ -1198,7 +1198,10 @@
     </div>
 </div>
 
+
 <script>
+    const API_URL = "http://localhost:8081/api/analysis";
+
     const searchInput = document.getElementById("learningSearch");
     const languageFilter = document.getElementById("languageFilter");
     const categoryFilter = document.getElementById("categoryFilter");
@@ -1207,23 +1210,133 @@
     const learningEmpty = document.getElementById("learningEmpty");
     const modal = document.getElementById("recordModal");
 
-    function getRecords() {
-        return Array.from(learningList.querySelectorAll(".learning-item"));
+    let analysisRecords = [];
+
+    function valueOf(record, ...keys) {
+        for (const key of keys) {
+            if (record[key] !== null && record[key] !== undefined &&
+                String(record[key]).trim() !== "") {
+                return record[key];
+            }
+        }
+        return "";
+    }
+
+    function normalizeLanguage(language) {
+        const lang = String(language || "unknown").trim().toLowerCase();
+
+        if (lang === "c++" || lang === "cpp") return "cpp";
+        if (lang === "c#" || lang === "csharp") return "csharp";
+
+        return lang;
+    }
+
+    function languageLabel(language) {
+        const labels = {
+            java: "Java",
+            python: "Python",
+            c: "C",
+            cpp: "C++",
+            csharp: "C#",
+            javascript: "JavaScript"
+        };
+
+        const key = normalizeLanguage(language);
+        return labels[key] || key.charAt(0).toUpperCase() + key.slice(1);
+    }
+
+    function categoryKey(category) {
+        const value = String(category || "").toLowerCase();
+
+        if (value.includes("logic")) return "logic";
+        if (value.includes("syntax")) return "syntax";
+        if (value.includes("runtime") || value.includes("exception")) {
+            return "runtime";
+        }
+        if (value.includes("input") || value.includes("output") ||
+            value.includes("i/o")) {
+            return "input";
+        }
+        if (value.includes("concept")) return "concept";
+
+        return "other";
+    }
+
+    function categoryLabel(category) {
+        const labels = {
+            logic: "Logic Error",
+            syntax: "Syntax Error",
+            runtime: "Runtime Error",
+            input: "Input/Output",
+            concept: "Concept",
+            other: "General Review"
+        };
+
+        return labels[categoryKey(category)];
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
+    }
+
+    function recordTitle(record) {
+        return String(valueOf(record, "issue_title", "issueTitle") ||
+            "Code Analysis");
+    }
+
+    function recordDate(record) {
+        const date = valueOf(record, "created_at", "createdAt");
+        if (!date) return "";
+
+        const parsed = new Date(date);
+        return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString();
+    }
+
+    function formattedDate(record) {
+        const date = recordDate(record);
+        if (!date) return "Date unavailable";
+
+        return new Date(date).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+        });
+    }
+
+    function recordExplanation(record) {
+        return String(valueOf(
+            record,
+            "explanation",
+            "what_went_wrong",
+            "whatWentWrong"
+        ) || "No explanation was saved for this analysis.");
+    }
+
+    function recordConcept(record) {
+        return String(valueOf(
+            record,
+            "concept_to_revise",
+            "conceptToRevise"
+        ) || "Review the reported issue");
     }
 
     function updateStatistics() {
-        const records = getRecords();
-
         const languages = new Set(
-            records.map(record => record.dataset.language)
+            analysisRecords.map(r => normalizeLanguage(r.language))
         );
 
         const categories = new Set(
-            records.map(record => record.dataset.category)
+            analysisRecords.map(r => categoryKey(r.category))
         );
 
         document.getElementById("totalAnalyses").textContent =
-            records.length;
+            analysisRecords.length;
 
         document.getElementById("languagesPracticed").textContent =
             languages.size;
@@ -1232,22 +1345,156 @@
             categories.size;
 
         document.getElementById("languageFoot").textContent =
-            languages.size ? "Unique languages in records" : "No languages yet";
+            languages.size
+                ? [...languages].map(languageLabel).join(", ")
+                : "No languages yet";
 
         document.getElementById("analysisFoot").textContent =
-            records.length + " record" + (records.length === 1 ? "" : "s");
+            analysisRecords.length + " saved analysis" +
+            (analysisRecords.length === 1 ? "" : "es");
 
-        // Demo indicator only; not a real measured learning score.
-        const progress = records.length ? 75 : 0;
-
-        document.getElementById("overallProgress").textContent =
-            progress + "%";
-
-        document.getElementById("progressFill").style.width =
-            progress + "%";
-
+        // No measured learning-progress score is stored in the database yet.
+        document.getElementById("overallProgress").textContent = "—";
+        document.getElementById("progressFill").style.width = "0%";
         document.getElementById("progressFoot").textContent =
-            records.length ? "Demo progress" : "Add a practice record";
+            "Progress score not available yet";
+    }
+
+    function updateFilters() {
+        const languages = [...new Set(
+            analysisRecords.map(r => normalizeLanguage(r.language))
+        )].sort();
+
+        languages.forEach(language => {
+            const exists = [...languageFilter.options].some(
+                option => option.value === language
+            );
+
+            if (!exists) {
+                languageFilter.add(new Option(languageLabel(language), language));
+            }
+        });
+
+        const categories = [...new Set(
+            analysisRecords.map(r => categoryKey(r.category))
+        )];
+
+        categories.forEach(category => {
+            const exists = [...categoryFilter.options].some(
+                option => option.value === category
+            );
+
+            if (!exists) {
+                const labels = {
+                    logic: "Logic Error",
+                    syntax: "Syntax Error",
+                    runtime: "Runtime Error",
+                    input: "Input/Output",
+                    concept: "Concept",
+                    other: "General Review"
+                };
+
+                categoryFilter.add(
+                    new Option(labels[category] || category, category)
+                );
+            }
+        });
+    }
+
+    function renderRecords() {
+        learningList.innerHTML = "";
+
+        analysisRecords.forEach(record => {
+            const language = normalizeLanguage(record.language);
+            const category = categoryKey(record.category);
+            const title = recordTitle(record);
+            const explanation = recordExplanation(record);
+            const concept = recordConcept(record);
+            const date = recordDate(record);
+
+            const searchable = [
+                title,
+                record.language,
+                record.category,
+                explanation,
+                concept,
+                valueOf(record, "submitted_code", "submittedCode"),
+                valueOf(record, "where_is_the_mistake", "whereIsTheMistake")
+            ].join(" ");
+
+            const item = document.createElement("article");
+            item.className = "learning-item";
+            item.dataset.id = record.id;
+            item.dataset.language = language;
+            item.dataset.category = category;
+            item.dataset.date = date;
+            item.dataset.search = searchable;
+
+            item.innerHTML = `
+                <div class="record-left">
+                    <div class="language-icon ${escapeHtml(language)}">
+                        <span>${escapeHtml(languageLabel(language).slice(0, 2))}</span>
+                    </div>
+
+                    <div class="record-info">
+                        <div class="record-title-line">
+                            <h3>${escapeHtml(title)}</h3>
+                        </div>
+
+                        <div class="record-meta">
+                            <span class="record-tag">
+                                ${escapeHtml(languageLabel(language))}
+                            </span>
+                            <span class="record-tag ${escapeHtml(category)}">
+                                ${escapeHtml(categoryLabel(record.category))}
+                            </span>
+                            <span class="record-tag">
+                                ${escapeHtml(concept)}
+                            </span>
+                        </div>
+
+                        <p class="record-description">
+                            ${escapeHtml(explanation)}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="record-right">
+                    <span class="record-date">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="16" rx="2"/>
+                            <path d="M16 3v4M8 3v4M3 10h18"/>
+                        </svg>
+                        <span class="date-label">
+                            ${escapeHtml(formattedDate(record))}
+                        </span>
+                    </span>
+
+                    <div class="record-actions">
+                        <button class="view-btn" type="button"
+                                data-action="view" data-id="${escapeHtml(record.id)}">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            View
+                        </button>
+
+                        <button class="delete-btn" type="button"
+                                data-action="delete" data-id="${escapeHtml(record.id)}"
+                                aria-label="Delete record">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            learningList.appendChild(item);
+        });
+
+        filterLearningRecords();
     }
 
     function filterLearningRecords() {
@@ -1256,52 +1503,195 @@
         const selectedCategory = categoryFilter.value;
         const sortValue = sortFilter.value;
 
-        const records = getRecords();
+        const items = Array.from(
+            learningList.querySelectorAll(".learning-item")
+        );
 
-        records.sort(function(a, b) {
+        items.sort((a, b) => {
             if (sortValue === "az") {
                 return a.querySelector("h3").textContent.localeCompare(
                     b.querySelector("h3").textContent
                 );
             }
 
-            const dateA = a.dataset.date || "";
-            const dateB = b.dataset.date || "";
-
             return sortValue === "oldest"
-                ? dateA.localeCompare(dateB)
-                : dateB.localeCompare(dateA);
+                ? a.dataset.date.localeCompare(b.dataset.date)
+                : b.dataset.date.localeCompare(a.dataset.date);
         });
 
-        records.forEach(function(record) {
-            learningList.appendChild(record);
+        items.forEach(item => {
+            learningList.appendChild(item);
 
-            const searchableText = (
-                (record.dataset.search || "") + " " + record.textContent
-            ).toLowerCase();
-
-            const matchesSearch = searchableText.includes(searchText);
+            const matchesSearch =
+                (item.dataset.search + " " + item.textContent)
+                    .toLowerCase().includes(searchText);
 
             const matchesLanguage =
                 selectedLanguage === "all" ||
-                record.dataset.language === selectedLanguage;
+                item.dataset.language === selectedLanguage;
 
             const matchesCategory =
                 selectedCategory === "all" ||
-                record.dataset.category === selectedCategory;
+                item.dataset.category === selectedCategory;
 
-            record.style.display =
+            item.style.display =
                 matchesSearch && matchesLanguage && matchesCategory
-                    ? "grid"
-                    : "none";
+                    ? "grid" : "none";
         });
 
-        const visibleCount = records.filter(function(record) {
-            return record.style.display !== "none";
-        }).length;
+        const visibleCount = items.filter(
+            item => item.style.display !== "none"
+        ).length;
 
-        learningEmpty.style.display =
-            visibleCount === 0 ? "block" : "none";
+        learningEmpty.style.display = visibleCount === 0 ? "block" : "none";
+
+        if (analysisRecords.length === 0) {
+            learningEmpty.textContent = "No saved analyses found yet.";
+        } else {
+            learningEmpty.textContent =
+                "No matching records found. Try another keyword or filter.";
+        }
+    }
+
+    async function loadLearningRecords() {
+        learningList.innerHTML = "";
+        learningEmpty.style.display = "block";
+        learningEmpty.textContent = "Loading your saved analyses...";
+
+        try {
+            const response = await fetch(API_URL);
+
+            if (!response.ok) {
+                throw new Error("Server returned status " + response.status);
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                throw new Error("The analysis API did not return a list.");
+            }
+
+            analysisRecords = data;
+            updateFilters();
+            updateStatistics();
+            renderRecords();
+
+            const note = document.querySelector(".learning-note span");
+            if (note) {
+                note.textContent =
+                    "Your learning history is loaded from saved database records.";
+            }
+        } catch (error) {
+            console.error("Could not load learning history:", error);
+            analysisRecords = [];
+            updateStatistics();
+
+            learningList.innerHTML = "";
+            learningEmpty.style.display = "block";
+            learningEmpty.textContent =
+                "Could not load your analyses. Make sure the backend is running on port 8081, then refresh this page.";
+
+            const note = document.querySelector(".learning-note span");
+            if (note) {
+                note.textContent =
+                    "Unable to connect to the backend. Your saved records have not been deleted.";
+            }
+        }
+    }
+
+    function showRecordDetails(record) {
+        const title = recordTitle(record);
+        const submittedCode = valueOf(
+            record, "submitted_code", "submittedCode"
+        );
+        const correctedCode = valueOf(
+            record, "corrected_code", "correctedCode"
+        );
+const details = [
+    "Language: " + languageLabel(record.language),
+    "Category: " + categoryLabel(record.category),
+    "",
+    "EXPLANATION",
+    recordExplanation(record),
+    "",
+    "WHERE IS THE MISTAKE?",
+    valueOf(record, "where_is_the_mistake", "whereIsTheMistake")
+        || "No mistake location was saved.",
+    "",
+    "WHY DID IT HAPPEN?",
+    valueOf(record, "why_it_happened", "whyItHappened")
+        || "No additional reason was saved.",
+    "",
+    "HOW TO CORRECT IT?",
+    valueOf(record, "how_to_correct_it", "howToCorrectIt")
+        || "No correction advice was saved.",
+    "",
+    "CONCEPT TO REVISE",
+    recordConcept(record)
+].join("\n");
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalDetails").style.whiteSpace = "pre-line";
+        document.getElementById("modalDetails").textContent = details;
+        document.getElementById("modalCode").textContent =
+            correctedCode || submittedCode || "No code was saved.";
+
+        const codeHeading = document.querySelector(".modal-card h3");
+        if (codeHeading) {
+            codeHeading.textContent = correctedCode
+                ? "Corrected code"
+                : "Submitted code";
+        }
+
+        modal.classList.add("open");
+        document.getElementById("modalClose").focus();
+    }
+
+    learningList.addEventListener("click", async function(event) {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+
+        const record = analysisRecords.find(
+            item => String(item.id) === button.dataset.id
+        );
+
+        if (!record) return;
+
+        if (button.dataset.action === "view") {
+            showRecordDetails(record);
+            return;
+        }
+
+        if (button.dataset.action === "delete") {
+            if (!confirm("Permanently delete this saved analysis?")) return;
+
+            button.disabled = true;
+
+            try {
+                const response = await fetch(
+                    API_URL + "/" + encodeURIComponent(record.id),
+                    { method: "DELETE" }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Delete failed with status " + response.status);
+                }
+
+                analysisRecords = analysisRecords.filter(
+                    item => String(item.id) !== String(record.id)
+                );
+
+                updateStatistics();
+                renderRecords();
+            } catch (error) {
+                console.error("Could not delete analysis:", error);
+                alert("The analysis could not be deleted. Please check the backend and try again.");
+                button.disabled = false;
+            }
+        }
+    });
+
+    function closeModal() {
+        modal.classList.remove("open");
     }
 
     searchInput.addEventListener("input", filterLearningRecords);
@@ -1309,58 +1699,18 @@
     categoryFilter.addEventListener("change", filterLearningRecords);
     sortFilter.addEventListener("change", filterLearningRecords);
 
-    // VIEW DETAILS
-    document.querySelectorAll(".view-btn").forEach(function(button) {
-        button.addEventListener("click", function() {
-            document.getElementById("modalTitle").textContent =
-                button.dataset.title || "Analysis Details";
-
-            document.getElementById("modalDetails").textContent =
-                button.dataset.details || "No details available.";
-
-            document.getElementById("modalCode").textContent =
-                button.dataset.code || "No code available.";
-
-            modal.classList.add("open");
-            document.getElementById("modalClose").focus();
-        });
-    });
-
-    function closeModal() {
-        modal.classList.remove("open");
-    }
-
     document.getElementById("modalClose").addEventListener("click", closeModal);
     document.getElementById("modalDone").addEventListener("click", closeModal);
 
     modal.addEventListener("click", function(event) {
-        if (event.target === modal) {
-            closeModal();
-        }
+        if (event.target === modal) closeModal();
     });
 
     document.addEventListener("keydown", function(event) {
-        if (event.key === "Escape") {
-            closeModal();
-        }
+        if (event.key === "Escape") closeModal();
     });
 
-    // DELETE DEMO RECORD
-    document.querySelectorAll(".delete-btn").forEach(function(button) {
-        button.addEventListener("click", function() {
-            const record = button.closest(".learning-item");
-
-            if (confirm("Delete this demo learning record?")) {
-                record.remove();
-                updateStatistics();
-                filterLearningRecords();
-            }
-        });
-    });
-
-    // INITIALIZE
-    updateStatistics();
-    filterLearningRecords();
+    loadLearningRecords();
 </script>
 
 </body>

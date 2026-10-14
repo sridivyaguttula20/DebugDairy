@@ -403,13 +403,12 @@ pre {
             <option value="searching">Linear Search</option>
             <option value="sorting">Bubble Sort</option>
             <option value="collections">ArrayList</option>
+            <option value="exceptions">Exception Handling</option>
         </select>
     </div>
 </section>
-
 <div class="layout">
 <main class="main-column">
-
     <section class="card" id="overview">
         <div class="card-head">
             <div class="section-icon" id="overviewIcon"></div>
@@ -988,7 +987,116 @@ collections: {
     question:"Which method returns the number of elements in an ArrayList named nums?",
     options:["nums.length","nums.size()","nums.count()","nums.getSize()"],answer:1,
     feedback:"ArrayList uses size() to report the number of elements. Arrays use the length field."
-}
+},
+    exceptions: {
+        title: "Exception Handling",
+        subtitle: "Handle runtime errors and prevent unexpected program crashes.",
+        language: "Java",
+        difficulty: "Beginner",
+        topic: "Exception Handling",
+        focus: "Runtime errors & try-catch",
+        icon: "warning",
+
+        definition: "Exception handling is a Java mechanism for responding to errors that occur during program execution. The try block contains code that may throw an exception, and the catch block handles a matching exception.",
+
+        importance: "Handling exceptions helps programs respond to unexpected situations. Checking a divisor before division can prevent ArithmeticException when performing integer division.",
+
+        visualTitle: "How exception handling works",
+        visualIntro: "Risky code runs in a try block. If a matching exception occurs, control moves to the catch block.",
+        visualLabel: "Try → Exception → Catch",
+        visualHint: "Execution flow",
+
+        visual: [
+            ["Start", "Program"],
+            ["Try", "Risky code"],
+            ["Error", "Exception"],
+            ["Catch", "Handle it"],
+            ["Continue", "Safely", "last"]
+        ],
+
+        visualCaption: "A matching catch block handles an exception thrown inside the try block. If no exception occurs, the catch block is skipped.",
+
+        steps: [
+            ["Identify risky code", "Find operations that may fail, such as integer division by a variable."],
+            ["Use a try block", "Place the operation inside try when you intend to handle its exception."],
+            ["Catch the exception", "Use catch (ArithmeticException e) to handle an arithmetic error."],
+            ["Handle the situation", "Display a useful message or take another appropriate action."]
+        ],
+
+        wrong: `int a = 10;
+int b = 0;
+System.out.println(a / b);`,
+
+        correct: `int a = 10;
+int b = 0;
+
+if (b != 0) {
+    System.out.println(a / b);
+} else {
+    System.out.println("Cannot divide by zero");
+}`,
+
+        wrongExplanation: "When b is zero, integer division throws ArithmeticException. The program does not reach the next statement normally.",
+
+        correctExplanation: "The if condition checks the divisor before division, so the program avoids dividing by zero.",
+
+        codeExplanation: "For integer division, check that the divisor is not zero before performing the operation. Use try-catch when handling exceptions is appropriate for the situation.",
+        approaches: [
+            {
+                title: "Check before dividing",
+                recommended: true,
+                description: "Use a condition when you can validate the divisor before performing the division.",
+                code: `if (b != 0) {
+    System.out.println(a / b);
+} else {
+    System.out.println("Cannot divide by zero");
+}`,
+                time: "O(1)",
+                space: "O(1)"
+            },
+            {
+                title: "Handle the exception",
+                description: "Use try-catch when you want to handle an ArithmeticException from integer division.",
+                code: `try {
+    System.out.println(a / b);
+} catch (ArithmeticException e) {
+    System.out.println("Cannot divide by zero");
+}`,
+                time: "O(1) for this operation",
+                space: "O(1) auxiliary"
+            }
+        ],
+        mistakes: [
+            "Dividing an integer by zero.",
+            "Assuming every runtime exception is caught automatically.",
+            "Catching an exception without providing useful handling.",
+            "Using exceptions instead of simple validation when a condition can be checked directly."
+        ],
+        takeaways: [
+            "An exception can interrupt normal program execution.",
+            "Use try-catch to handle matching exceptions.",
+            "Integer division by zero throws ArithmeticException in Java.",
+            "Check a divisor before performing integer division when appropriate."
+        ],
+        facts: [
+            "Risky code: try",
+            "Exception handler: catch",
+            "Integer division by zero: ArithmeticException",
+            "Prevent division by zero: check divisor"
+        ],
+        related: ["methods", "input", "loops"],
+        tip: "Test division using a positive divisor, a negative divisor, and zero. Consider whether the program should reject the input or display a helpful message.",
+        question: "What happens when Java performs integer division by zero?",
+        options: [
+            "It always returns 0",
+            "It throws ArithmeticException",
+            "It returns null",
+            "It automatically skips the division"
+        ],
+        answer: 1,
+        feedback: "Integer division by zero throws ArithmeticException. Checking the divisor before division can prevent this error."
+    },
+
 };
 
 function setText(id, value) {
@@ -1017,10 +1125,24 @@ function renderSteps(items) {
 
 function renderList(id, items) {
     const list = document.getElementById(id);
+    if (!list) return;
+
     list.replaceChildren();
-    items.forEach(item => {
+
+    if (!Array.isArray(items) || items.length === 0) {
         const li = document.createElement("li");
-        li.textContent = item;
+        li.textContent = "No content provided for this section.";
+        list.appendChild(li);
+        return;
+    }
+
+    items.forEach(item => {
+        if (item === null || item === undefined || String(item).trim() === "") {
+            return;
+        }
+
+        const li = document.createElement("li");
+        li.textContent = String(item);
         list.appendChild(li);
     });
 }
@@ -1052,14 +1174,24 @@ function renderApproaches(items) {
     const container = document.getElementById("approachList");
     container.replaceChildren();
 
+    if (!Array.isArray(items) || items.length === 0) {
+        const message = document.createElement("p");
+        message.textContent = "No approaches were provided for this lesson.";
+        container.appendChild(message);
+        return;
+    }
+
     items.forEach(item => {
+        if (!item || typeof item !== "object") return;
+
         const section = document.createElement("div");
         section.className = "approach";
 
         const header = document.createElement("div");
         header.className = "approach-top";
+
         const title = document.createElement("h3");
-        title.textContent = item.title;
+        title.textContent = item.title || "Approach";
         header.appendChild(title);
 
         if (item.recommended) {
@@ -1070,13 +1202,15 @@ function renderApproaches(items) {
         }
 
         const description = document.createElement("p");
-        description.textContent = item.description;
+        description.textContent = item.description || "";
 
         const codePanel = document.createElement("div");
         codePanel.className = "code-panel approach-code";
+
         const pre = document.createElement("pre");
         const code = document.createElement("code");
-        code.textContent = item.code;
+        code.textContent = String(item.code || "").replace(/\\n/g, "\n");
+
         pre.appendChild(code);
         codePanel.appendChild(pre);
 
@@ -1084,26 +1218,41 @@ function renderApproaches(items) {
         complexity.className = "complexity";
 
         const time = document.createElement("span");
-        time.textContent = "Time: " + item.time;
-        const space = document.createElement("span");
-        space.textContent = "Space: " + item.space;
-        complexity.append(time, space);
+        time.textContent = "Time: " + (item.time || "Not provided");
 
+        const space = document.createElement("span");
+        space.textContent = "Space: " + (item.space || "Not provided");
+
+        complexity.append(time, space);
         section.append(header, description, codePanel, complexity);
         container.appendChild(section);
     });
 }
-
 function renderFacts(items) {
     const container = document.getElementById("keyFacts");
+    if (!container) return;
+
     container.replaceChildren();
 
+    if (!Array.isArray(items) || items.length === 0) {
+        const message = document.createElement("p");
+        message.textContent = "No key facts provided for this lesson.";
+        container.appendChild(message);
+        return;
+    }
+
     items.forEach(item => {
+        if (item === null || item === undefined || String(item).trim() === "") {
+            return;
+        }
+
         const row = document.createElement("div");
         row.className = "fact";
         row.innerHTML = icons.check;
+
         const text = document.createElement("span");
-        text.textContent = item;
+        text.textContent = String(item);
+
         row.appendChild(text);
         container.appendChild(row);
     });
@@ -1151,13 +1300,118 @@ function renderQuestion(data) {
     feedback.textContent = "";
 }
 
-function renderConcept() {
+
+async function renderConcept() {
     const params = new URLSearchParams(window.location.search);
     const requested = (params.get("concept") || "array").toLowerCase();
-    const key = concepts[requested] ? requested : "array";
-    const data = concepts[key];
 
-    document.getElementById("conceptSelect").value = key;
+    // Keep existing lessons available as fallbacks.
+    const fallback = concepts[requested] || concepts.array;
+    window.currentConceptLesson = null;
+    let data = fallback;
+
+    // Only request AI content when a concept isn't already predefined.
+    // Existing lessons remain unchanged.
+    if (!concepts[requested]) {
+        const conceptName = params.get("concept");
+
+        if (conceptName) {
+            try {
+                const response = await fetch(
+                    "http://localhost:8081/api/analysis/lesson",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            concept: conceptName,
+                            language: params.get("language") || "Java"
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Lesson request failed: ${response.status}`
+                    );
+                }
+
+                data = await response.json();
+                alert(
+    "Lesson data check:\n" +
+    "Approaches: " + (data.approaches?.length ?? "missing") + "\n" +
+    "Mistakes: " + (data.mistakes?.length ?? "missing") + "\n" +
+    "Takeaways: " + (data.takeaways?.length ?? "missing") + "\n" +
+    "Facts: " + (data.facts?.length ?? "missing") + "\n" +
+    "Question: " + (data.question || "EMPTY") + "\n" +
+    "Options: " + (data.options?.length ?? "missing")
+);
+console.log("Question:", data.question);
+console.log("Options:", data.options);
+console.log("Answer index:", data.answer);
+
+                const requiredFields = [
+                    "title",
+                    "definition",
+                    "wrong",
+                    "correct",
+                    "steps",
+                    "approaches",
+                    "mistakes",
+                    "takeaways",
+                    "facts",
+                    "related",
+                    "question",
+                    "options",
+                    "answer"
+                ];
+
+                for (const field of requiredFields) {
+                    if (data[field] === undefined || data[field] === null) {
+                        throw new Error(`Lesson missing field: ${field}`);
+                    }
+                }
+                window.currentConceptLesson = data;
+
+                // Provide defaults for optional display fields.
+                data.subtitle ||= "AI-generated programming lesson";
+                data.language ||= params.get("language") || "Java";
+                data.difficulty ||= "Beginner";
+                data.topic ||= conceptName;
+                data.focus ||= conceptName;
+                data.icon ||= "diagram";
+                data.importance ||= "";
+                data.visualTitle ||= data.title;
+                data.visualIntro ||= data.definition;
+                data.visualLabel ||= data.title;
+                data.visualHint ||= "Concept flow";
+                data.visual ||= [[data.title, "Concept"]];
+                data.visualCaption ||= data.definition;
+                data.tip ||= "";
+                data.wrongExplanation ||= "";
+                data.correctExplanation ||= "";
+                data.codeExplanation ||= "";
+                data.feedback ||= "";
+            } catch (error) {
+                console.error("Concept lesson error:", error);
+                alert(
+                    "Unable to generate this lesson. Showing the default lesson instead."
+                );
+                data = fallback;
+            }
+        }
+    }
+    
+    const conceptSelect = document.getElementById("conceptSelect");
+
+    if (conceptSelect) {
+        const matchingOption = Array.from(conceptSelect.options)
+            .find(option => option.value === requested);
+
+        conceptSelect.value = matchingOption ? requested : "";
+    }
+
     document.title = data.title + " | DebugDairy";
 
     setText("pageTitle", data.title);
@@ -1175,14 +1429,20 @@ function renderConcept() {
     setText("correctExplanation", data.correctExplanation);
     setText("codeExplanation", data.codeExplanation);
 
-    document.getElementById("overviewIcon").innerHTML = icons[data.icon];
-    document.getElementById("snapshotIcon").innerHTML = icons[data.icon];
+    const icon = icons[data.icon] || icons.diagram;
+    document.getElementById("overviewIcon").innerHTML = icon;
+    document.getElementById("snapshotIcon").innerHTML = icon;
+
     document.querySelectorAll("[data-icon]").forEach(el => {
         el.innerHTML = icons[el.dataset.icon] || icons.diagram;
     });
 
-    document.getElementById("wrongHeading").innerHTML = icons.cross + "<span>Incorrect Code</span>";
-    document.getElementById("correctHeading").innerHTML = icons.check + "<span>Correct Code</span>";
+    document.getElementById("wrongHeading").innerHTML =
+        icons.cross + "<span>Incorrect Code</span>";
+
+    document.getElementById("correctHeading").innerHTML =
+        icons.check + "<span>Correct Code</span>";
+
     setText("wrongCode", data.wrong);
     setText("correctCode", data.correct);
 
@@ -1196,17 +1456,21 @@ function renderConcept() {
     renderQuestion(data);
 
     document.querySelectorAll(".concept-nav a").forEach(link => {
-        link.classList.toggle("active", link.getAttribute("href") === "#overview");
+        link.classList.toggle(
+            "active",
+            link.getAttribute("href") === "#overview"
+        );
     });
 
     document.querySelectorAll(".concept-nav a").forEach(link => {
-        link.addEventListener("click", () => {
-            document.querySelectorAll(".concept-nav a").forEach(a => a.classList.remove("active"));
+        link.onclick = () => {
+            document.querySelectorAll(".concept-nav a").forEach(a =>
+                a.classList.remove("active")
+            );
             link.classList.add("active");
-        });
+        };
     });
 }
-
 document.getElementById("conceptSelect").addEventListener("change", function() {
     const url = new URL(window.location.href);
     url.searchParams.set("concept", this.value);
@@ -1216,7 +1480,9 @@ document.getElementById("conceptSelect").addEventListener("change", function() {
 document.getElementById("checkButton").addEventListener("click", function() {
     const params = new URLSearchParams(window.location.search);
     const key = params.get("concept") || "array";
-    const data = concepts[concepts[key] ? key : "array"];
+    const data = window.currentConceptLesson || concepts[
+    concepts[key] ? key : "array"
+];
     const selected = document.querySelector('input[name="conceptAnswer"]:checked');
     const feedback = document.getElementById("feedback");
 
@@ -1228,13 +1494,14 @@ document.getElementById("checkButton").addEventListener("click", function() {
         return;
     }
 
-    if (Number(selected.value) === data.answer) {
-        feedback.classList.add("correct");
-        feedback.textContent = "Correct! " + data.feedback;
-    } else {
-        feedback.classList.add("incorrect");
-        feedback.textContent = "Not quite. " + data.feedback;
-    }
+    if (Number(selected.value) === Number(data.answer)) {
+    feedback.classList.add("correct");
+    feedback.textContent = data.feedback || "Correct! Well done.";
+} else {
+    feedback.classList.add("incorrect");
+    feedback.textContent = "Incorrect. " +
+        (data.feedback || "Please try again.");
+}
 });
 
 document.getElementById("resetButton").addEventListener("click", function() {

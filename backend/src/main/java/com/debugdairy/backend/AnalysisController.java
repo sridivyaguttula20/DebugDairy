@@ -11,6 +11,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = {
+    "http://127.0.0.1:5500",
+    "http://localhost:5500"
+})
 @RestController
 @RequestMapping("/api/analysis")
 public class AnalysisController {
@@ -48,17 +52,39 @@ public class AnalysisController {
         }
 
         try {
-            String analysis = groqService.analyzeCode(code, language);
+            String aiResponse =
+                    groqService.analyzeCode(code, language);
 
             Map<String, String> result = objectMapper.readValue(
-                    analysis,
+                    aiResponse,
                     new TypeReference<Map<String, String>>() {}
             );
+
+            String[] requiredFields = {
+                "issueTitle",
+                "whatWentWrong",
+                "whereIsTheMistake",
+                "whyItHappened",
+                "howToCorrectIt",
+                "correctedCode",
+                "category",
+                "conceptToRevise"
+            };
+
+            for (String field : requiredFields) {
+                if (result.get(field) == null
+                        || result.get(field).isBlank()) {
+                    throw new IllegalStateException(
+                            "AI response is missing field: " + field);
+                }
+            }
 
             Long id = analysisRepository.saveAnalysis(
                     language, code, result);
 
             result.put("id", String.valueOf(id));
+            result.put("language", language);
+            result.put("originalCode", code);
 
             return result;
 
@@ -112,6 +138,62 @@ public class AnalysisController {
                 "message", "Analysis deleted successfully",
                 "id", String.valueOf(id)
         );
+    }
+
+    // 5. Generate a programming concept lesson using Groq
+    @PostMapping("/lesson")
+    public Map<String, Object> generateConceptLesson(
+            @RequestBody Map<String, String> request) {
+
+        String concept = request.get("concept");
+        String language = request.get("language");
+
+        if (concept == null || concept.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Concept is required");
+        }
+
+        if (language == null || language.isBlank()) {
+            language = "Java";
+        }
+
+        try {
+            String aiResponse = groqService.generateConceptLesson(
+                    concept.trim(), language.trim());
+
+            // Parse JSON containing nested arrays and objects
+            Map<String, Object> lesson = objectMapper.readValue(
+                    aiResponse,
+                    new TypeReference<Map<String, Object>>() {}
+            );
+
+            if (lesson.get("title") == null
+                    || lesson.get("definition") == null
+                    || lesson.get("wrong") == null
+                    || lesson.get("correct") == null
+                    || lesson.get("steps") == null
+                    || lesson.get("question") == null
+                    || lesson.get("options") == null
+                    || lesson.get("answer") == null) {
+
+                throw new IllegalStateException(
+                        "AI lesson is missing required fields");
+            }
+
+            lesson.put("requestedConcept", concept.trim());
+            lesson.put("language", language.trim());
+
+            return lesson;
+
+        } catch (Exception e) {
+            System.err.println(
+                    "Lesson generation error: " + e.getMessage());
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Unable to generate the concept lesson. Please try again.");
+        }
     }
 
     // 5. Retrieve learning history
