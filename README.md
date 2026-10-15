@@ -25,11 +25,35 @@ one public URL.
    `PORT` value; the backend uses it automatically.
 
 The backend initializes the `code_analyses` table on startup. `/api/health`
-provides the Railway health check, and `/` opens the login page.
+provides the Railway health check, and `/` opens the dashboard.
 
 ## Local development
 
-The frontend continues to target `http://localhost:8081` when served by VS Code
-Live Server on port 5500. The backend defaults to port 8081 and reads
-`GROQ_API_KEY` from the environment. Set `SPRING_DATASOURCE_PASSWORD` if your
-local MySQL `root` user has a password.
+From the repository root, run the following in a PowerShell terminal. Enter
+your local MySQL root password and Groq key at the secure prompts; neither is
+saved in the repository.
+
+```powershell
+$mysqlSecret = Read-Host "MySQL root password" -AsSecureString
+$mysqlPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($mysqlSecret)
+try {
+    $env:SPRING_DATASOURCE_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($mysqlPointer)
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($mysqlPointer)
+}
+
+$groqSecret = Read-Host "Groq API key" -AsSecureString
+$groqPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($groqSecret)
+try {
+    $env:GROQ_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($groqPointer)
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($groqPointer)
+}
+
+Set-Location .\backend
+.\mvnw.cmd spring-boot:run
+```
+
+Open `http://localhost:8081`. The frontend and API are served from the same
+origin. MySQL must be running and the `debugdairy` database must exist; startup
+creates the `code_analyses` table automatically.
