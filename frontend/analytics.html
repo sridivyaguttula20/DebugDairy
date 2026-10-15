@@ -453,6 +453,7 @@
 }
         }
     </style>   
+    <script src="api-config.js"></script>
 </head>
 <body>
 
@@ -654,7 +655,7 @@
 
     
 <script>
-const API_URL = "http://localhost:8081/api/analysis";
+const API_URL = `${window.DEBUGDAIRY_API_BASE}/api/analysis`;
 
 const categoryColors = [
     "#7051df", "#a363e8", "#f2b541", "#ee708b",

@@ -355,6 +355,7 @@ pre {
 }
 </style>
 <link rel="stylesheet" href="css/style.css">
+<script src="api-config.js"></script>
 </head>
 
 <body>
@@ -1318,7 +1319,7 @@ async function renderConcept() {
         if (conceptName) {
             try {
                 const response = await fetch(
-                    "http://localhost:8081/api/analysis/lesson",
+                    `${window.DEBUGDAIRY_API_BASE}/api/analysis/lesson`,
                     {
                         method: "POST",
                         headers: {

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | DebugDairy</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="api-config.js"></script>
 </head>
 <body class="app-body">
 
@@ -206,7 +207,7 @@
     async function loadDashboardSummary() {
         try {
             const response = await fetch(
-                "http://localhost:8081/api/analytics/summary"
+                `${window.DEBUGDAIRY_API_BASE}/api/analytics/summary`
             );
 
             if (!response.ok) {
@@ -230,7 +231,7 @@ async function loadWeeklyAnalyses() {
     const weeklyElement = document.getElementById("weeklyAnalyses");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load analyses");
@@ -265,7 +266,7 @@ async function loadDashboardStreak() {
     const streakElement = document.getElementById("dashboardStreak");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load analysis records");
@@ -325,7 +326,7 @@ async function loadRecentMistakes() {
     const list = document.getElementById("recentMistakesList");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load recent analyses");
@@ -383,7 +384,7 @@ async function loadMistakeCategories() {
     const legend = document.getElementById("chartLegend");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load analysis records");
@@ -481,7 +482,7 @@ async function loadAnalysesToday() {
     const todayElement = document.getElementById("analysesToday");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load analyses");

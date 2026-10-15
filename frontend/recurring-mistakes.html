@@ -677,6 +677,7 @@
     }
 }
     </style>
+    <script src="api-config.js"></script>
 </head>
 
 <body class="app-body">
@@ -933,7 +934,7 @@
 
 
 <script>
-    const API_URL = "http://localhost:8081/api/analysis";
+    const API_URL = `${window.DEBUGDAIRY_API_BASE}/api/analysis`;
 
     const mistakeSearch = document.getElementById("mistakeSearch");
     const mistakeList = document.querySelector(".mistake-list") ||

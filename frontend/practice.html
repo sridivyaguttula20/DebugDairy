@@ -241,6 +241,7 @@ body{margin:0;background:#f5f8fc;color:#1d3150;font-family:Arial,sans-serif}
 
 </style>
 <link rel="stylesheet" href="css/style.css">
+<script src="api-config.js"></script>
 </head>
 
 <body>
@@ -624,7 +625,7 @@ async function updateLearningStreak() {
     const streakElement = document.getElementById("learningStreak");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load learning history");
@@ -690,7 +691,7 @@ async function updateWeakAreas() {
     const weakAreasList = document.getElementById("weakAreasList");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load analysis records");
@@ -767,7 +768,7 @@ async function updateTotalPracticeAnalyses() {
     const totalElement = document.getElementById("totalPracticeAnalyses");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load analyses");
@@ -790,7 +791,7 @@ async function updateBadges() {
     const conceptMaster = document.getElementById("badgeConceptMaster");
 
     try {
-        const response = await fetch("http://localhost:8081/api/analysis");
+        const response = await fetch(`${window.DEBUGDAIRY_API_BASE}/api/analysis`);
 
         if (!response.ok) {
             throw new Error("Failed to load analysis records");
